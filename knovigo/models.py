@@ -10,6 +10,8 @@ WEEKDAYS = [
   (7, _("Sunday")),
 ]
 
+GEOHASH_LENGTH = 12
+
 class Place(models.Model):
     google_place_id = models.IntegerField(primary_key=True)
     name = models.CharField()
@@ -60,6 +62,7 @@ class UserReport(models.Model):
     report_id = models.AutoField(primary_key=True)
     user_id = model.ForeignKey(User, null=True) #ensure that we can have no users assigned for now
     place_id = model.ForeignKey(Place) 
+    geohash_id = model.ForeignKey(GeoHash)
     density_rating = model.IntegerField()
     social_distancing_rating = model.IntegerField()
     mask_rating = model.IntegerField()
@@ -73,5 +76,6 @@ class User(models.Model):
     id = models.AutoField(primary_key=true)
 
 class GeoHash(models.Model):
-    id = models.IntegerField(primary_key=true)
+    id = models.IntegerField(primary_key=true, max_length=GEOHASH_LENGTH) # change to a constant
+    name = models.CharField()
     # add LA Public health data for this region
