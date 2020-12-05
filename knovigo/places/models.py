@@ -13,7 +13,7 @@ WEEKDAYS = [
 GEOHASH_LENGTH = 12
 
 class Place(models.Model):
-    google_place_id = models.IntegerField(primary_key=True)
+    google_place_id = models.CharField(primary_key=True)
     name = models.CharField()
     address = models.CharField()
     types = models.ArrayField(models.CharField)
