@@ -1,35 +1,42 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 WEEKDAYS = [
-  (1, _("Monday")),
-  (2, _("Tuesday")),
-  (3, _("Wednesday")),
-  (4, _("Thursday")),
-  (5, _("Friday")),
-  (6, _("Saturday")),
-  (7, _("Sunday")),
+  (1, ("Monday")),
+  (2, ("Tuesday")),
+  (3, ("Wednesday")),
+  (4, ("Thursday")),
+  (5, ("Friday")),
+  (6, ("Saturday")),
+  (7, ("Sunday")),
 ]
+
+ALLOWED_TYPES = [] # add allowed store types
 
 GEOHASH_LENGTH = 12
 
 class Place(models.Model):
-    google_place_id = models.CharField(primary_key=True)
-    name = models.CharField()
-    address = models.CharField()
-    types = models.ArrayField(models.CharField)
-    coordinates = models.PointField()
+    google_place_id = models.CharField(primary_key=True, max_length=60)
+    name = models.CharField(max_length=60) #populartimes
+    address = models.CharField(max_length=60) #populartimes
+    types = ArrayField(models.CharField(max_length=60)) #populartimes
+    x_coordinate = models.FloatField() #populartimes
+    y_coordinate = models.FloatField() #populartimes
 
 
-    rating = models.IntegerField()
-    rating_n = models.IntegerField()
-    phone_regex = RegexValidator(regex=r'^\+?1?\d{9,15}$', message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
-    phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True) # validators should be a list
-    hours = models.ForeignKey(BusinessHours)
+    rating = models.IntegerField() #populartimes
+    rating_n = models.IntegerField() #populartimes
+    phone_number = models.CharField(max_length=60) # add validator
+    hours = models.ForeignKey('BusinessHours', on_delete=models.CASCADE)
+    website = models.CharField(max_length=60) #add validators
+    icon = models.CharField(max_length=60) # URL for icon - keep?
+    types = ArrayField(models.CharField(max_length=60))
+    price_level = models.IntegerField() # add restrictions! (0-4)
     #other business info
 
-    popular_times = models.ForeignKey(PopularTimes) #figure out
+    popular_times = models.ForeignKey('PopularTimes', on_delete=models.CASCADE) #figure out
 
-    covid_updates = models.ArrayField(models.CharField)
+    covid_updates = ArrayField(models.CharField(max_length=60))
     confirmed_staff_infected = models.IntegerField()
 
     agg_density = models.IntegerField()
@@ -48,34 +55,36 @@ class Place(models.Model):
 
 # account for holidays?
 class BusinessHours(models.Model):
-    id = models.AutoField(primary_key=true)
-    place_id = models.ForeignKey(Place)
+    id = models.AutoField(primary_key=True)
+    place_id = models.ForeignKey('Place', on_delete=models.CASCADE) #check is cascade is correct!
     weekday = models.IntegerField(choices=WEEKDAYS)
     from_hour = models.TimeField()
     to_hour = models.TimeField()
 
 class PopularTimes(models.Model):
-    id = models.AutoField(primary_key=true)
-    place_id = models.ForeignKey(Place)
+    id = models.AutoField(primary_key=True)
+    place_id = models.ForeignKey('Place', on_delete=models.CASCADE)
+
+    popular_times = ArrayField(ArrayField(models.IntegerField()))
 
 class UserReport(models.Model):
     report_id = models.AutoField(primary_key=True)
-    user_id = model.ForeignKey(User, null=True) #ensure that we can have no users assigned for now
-    place_id = model.ForeignKey(Place) 
-    geohash_id = model.ForeignKey(GeoHash)
-    density_rating = model.IntegerField()
-    social_distancing_rating = model.IntegerField()
-    mask_rating = model.IntegerField()
-    notes = model.TextField()
+    user_id = models.ForeignKey('User', on_delete=models.CASCADE, null=True) #ensure that we can have no users assigned for now
+    place_id = models.ForeignKey('Place', on_delete=models.CASCADE) 
+    geohash_id = models.ForeignKey('GeoHash', on_delete=models.CASCADE)
+    density_rating = models.IntegerField()
+    social_distancing_rating = models.IntegerField()
+    mask_rating = models.IntegerField()
+    notes = models.TextField()
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 #including as a placeholder for now
 class User(models.Model):
-    id = models.AutoField(primary_key=true)
+    id = models.AutoField(primary_key=True)
 
 class GeoHash(models.Model):
-    id = models.IntegerField(primary_key=true, max_length=GEOHASH_LENGTH) # change to a constant
-    name = models.CharField()
+    id = models.IntegerField(primary_key=True, max_length=GEOHASH_LENGTH) # change to a constant
+    name = models.CharField(max_length=60)
     # add LA Public health data for this region
