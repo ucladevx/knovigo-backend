@@ -5,11 +5,16 @@ from rest_framework import routers
 from . import views
 
 router = routers.DefaultRouter()
-router.register('places', views.PlaceViewSet)
+#router.register(r'places', views.PlaceViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
+# urlpatterns = [
+#     path('', include(router.urls)),
+#     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+# ]
+
 urlpatterns = [
-    path('', include(router.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path('place/', views.places_list),
+    path('place/<int:pk>/', views.place_detail),
 ]

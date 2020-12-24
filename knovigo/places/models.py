@@ -16,10 +16,11 @@ ALLOWED_TYPES = [] # add allowed store types
 GEOHASH_LENGTH = 12
 
 class Place(models.Model):
+    # go through for what's allowed to be NULL JSADKLFJSDA:
     google_place_id = models.CharField(primary_key=True, max_length=60)
     name = models.CharField(max_length=60) #populartimes
     address = models.CharField(max_length=60) #populartimes
-    types = ArrayField(models.CharField(max_length=60)) #populartimes
+    types = ArrayField(models.CharField(max_length=60), null=True, blank=True) #populartimes
     x_coordinate = models.FloatField() #populartimes
     y_coordinate = models.FloatField() #populartimes
 
@@ -27,16 +28,15 @@ class Place(models.Model):
     rating = models.IntegerField() #populartimes
     rating_n = models.IntegerField() #populartimes
     phone_number = models.CharField(max_length=60) # add validator
-    hours = models.ForeignKey('BusinessHours', on_delete=models.CASCADE)
+    hours = models.ForeignKey('BusinessHours', on_delete=models.CASCADE, null=True, blank=True)
     website = models.CharField(max_length=60) #add validators
     icon = models.CharField(max_length=60) # URL for icon - keep?
-    types = ArrayField(models.CharField(max_length=60))
     price_level = models.IntegerField() # add restrictions! (0-4)
     #other business info
 
-    popular_times = models.ForeignKey('PopularTimes', on_delete=models.CASCADE) #figure out
+    popular_times = models.ForeignKey('PopularTimes', on_delete=models.CASCADE, null=True, blank=True) #figure out
 
-    covid_updates = ArrayField(models.CharField(max_length=60))
+    covid_updates = ArrayField(models.CharField(max_length=60), null=True, blank=True)
     confirmed_staff_infected = models.IntegerField()
 
     agg_density = models.IntegerField()
