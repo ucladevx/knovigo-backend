@@ -70,21 +70,46 @@ class PopularTimes(models.Model):
 class UserReport(models.Model):
     report_id = models.AutoField(primary_key=True)
     user_id = models.ForeignKey('User', on_delete=models.CASCADE, null=True) #ensure that we can have no users assigned for now
-    place_id = models.ForeignKey('Place', on_delete=models.CASCADE) 
-    geohash_id = models.ForeignKey('GeoHash', on_delete=models.CASCADE)
+    
+    # TODO: place/geohash should be connected to places api
+    place_id = models.ForeignKey('Place', on_delete=models.CASCADE, null=True) 
+    geohash_id = models.ForeignKey('GeoHash', on_delete=models.CASCADE, null=True)
+    from_google_form = models.BooleanField() # differentiate between app vs google form reports
+
+    created = models.DateTimeField()
+    updated = models.DateTimeField(auto_now=True)
+
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+
     density_rating = models.IntegerField()
     social_distancing_rating = models.IntegerField()
     mask_rating = models.IntegerField()
-    notes = models.TextField()
+    covid_rating = models.IntegerField()
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # select all that apply options
+    # integer - 0 = false, 1 = true, 2 = not specified
+    masks_required_checkbox = models.IntegerField()
+    staff_masks_checkbox = models.IntegerField()
+    plexiglass_checkbox = models.IntegerField()
+    line_outside_checkbox = models.IntegerField()
+    capacity_checkbox = models.IntegerField()
+    takeout_checkbox = models.IntegerField()
+    dine_in_checkbox = models.IntegerField()
+    outdoor_seating_checkbox = models.IntegerField()
+    social_distancing_checkbox = models.IntegerField()
+    bathroom_checkbox = models.IntegerField()
+    wifi_checkbox = models.IntegerField()
+    outlets_checkbox = models.IntegerField()
+
+    covid_notes = models.TextField()
+    other_comments = models.TextField()
 
 #including as a placeholder for now
 class User(models.Model):
     id = models.AutoField(primary_key=True)
 
 class GeoHash(models.Model):
-    id = models.IntegerField(primary_key=True, max_length=GEOHASH_LENGTH) # change to a constant
+    id = models.CharField(primary_key=True, max_length=GEOHASH_LENGTH) # change to a constant
     name = models.CharField(max_length=60)
     # add LA Public health data for this region

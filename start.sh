@@ -1,6 +1,8 @@
 #!/bin/sh
 
-#python manage.py makemigrations <app name>
-#python manage.py migrate
+#pip install -r requirements.txt
+
+python manage.py makemigrations places
+python manage.py migrate
 
 python manage.py runserver 0.0.0.0:8000
