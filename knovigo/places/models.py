@@ -1,14 +1,15 @@
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 
+# 0 indexing for popular times array
 WEEKDAYS = [
-  (1, ("Monday")),
-  (2, ("Tuesday")),
-  (3, ("Wednesday")),
-  (4, ("Thursday")),
-  (5, ("Friday")),
-  (6, ("Saturday")),
-  (7, ("Sunday")),
+  (0, ("Monday")),
+  (1, ("Tuesday")),
+  (2, ("Wednesday")),
+  (3, ("Thursday")),
+  (4, ("Friday")),
+  (5, ("Saturday")),
+  (6, ("Sunday")),
 ]
 
 ALLOWED_TYPES = [] # add allowed store types
@@ -65,7 +66,14 @@ class PopularTimes(models.Model):
     id = models.AutoField(primary_key=True)
     place_id = models.ForeignKey('Place', on_delete=models.CASCADE)
 
-    popular_times = ArrayField(ArrayField(models.IntegerField()))
+    #popular_times = ArrayField(ArrayField(models.IntegerField()))
+    monday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
+    tuesday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
+    wednesday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
+    thursday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
+    friday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
+    saturday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
+    sunday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
 
 class UserReport(models.Model):
     report_id = models.AutoField(primary_key=True)
