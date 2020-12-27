@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,6 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'knovigo.places',
+    'django_crontab'
+]
+
+# use https://crontab.guru/ for cronjob syntax
+CRONJOBS = [
+    ('0 * * * *', 'knovigo.places.report_scraper.scrape_user_report_data', '>> ' + os.path.join(BASE_DIR,'log/places_cron.log') + ' 2>&1')
 ]
 
 MIDDLEWARE = [

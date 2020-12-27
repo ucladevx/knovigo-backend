@@ -17,4 +17,5 @@ router = routers.DefaultRouter()
 urlpatterns = [
     path('place/', views.places_list),
     path('place/<int:pk>/', views.place_detail),
-]
+    path('get_user_report', views.get_user_report_data),
+] 
