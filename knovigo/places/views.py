@@ -20,15 +20,33 @@ def places_list(request):
     """
     if request.method == 'GET':
         places = Place.objects.all()
-        serializer = PlaceSerializer(places, many=True)
+        serializer = PlaceSerializer(places, many=True, context={'request': request})
         return JsonResponse(serializer.data, safe=False)
 
-def place_detail(request, pk):
+        # types, data!!
+
+def places_filter_list(request, filter):
+	"""
+	List all places - ratings, name, distance, expensiveness, types, safety data
+	Add location stuff!
+	"""
+	if request.method == 'GET':
+		fields = ("google_place_id", "address", "name", "rating", "rating_n", "price_level", "types", "x_coordinate", "y_coordinate", "agg_density", "agg_social", "agg_mask")
+		if filter not in fields:
+			return
+			# error handling
+		places = Place.objects.all().only(*fields).order_by(filter)
+		serializer = PlaceSerializer(places, many=True, context={'request': request}, fields = fields)
+		return JsonResponse(serializer.data, safe=False)
+
+        # types, data!!
+
+def place_detail(request, id):
     """
     Get details for a place
     """
     try:
-        place = Place.objects.get(pk=pk)
+        place = Place.objects.get(google_place_id=id)
     except Place.DoesNotExist:
         return HttpResponse(status=404)
 
