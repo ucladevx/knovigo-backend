@@ -119,5 +119,7 @@ GitHub.sublime-settings
 !.vscode/extensions.json 
 .history
 
+.DS_Store
+
 # migrations (can commit later)
 *migrations/
