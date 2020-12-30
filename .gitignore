@@ -24,7 +24,8 @@ media
 .idea/**/dynamic.xml 
 .idea/**/uiDesigner.xml 
 .idea/**/gradle.xml 
-.idea/**/libraries 
+.idea/**/libraries
+.idea/
 *.iws /out/ 
 
 # Python # 
@@ -117,3 +118,6 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+# migrations (can commit later)
+*migrations/

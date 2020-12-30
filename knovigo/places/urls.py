@@ -2,7 +2,7 @@ from django.urls import path
 from django.conf.urls import url, include
 from rest_framework import routers
 
-from . import views
+from . import views, scraper
 
 router = routers.DefaultRouter()
 #router.register(r'places', views.PlaceViewSet)
@@ -18,4 +18,6 @@ urlpatterns = [
     path('place/', views.places_list),
     path('place/<int:pk>/', views.place_detail),
     path('get_user_report', views.get_user_report_data),
+    path('get_place_data', views.get_place_data_updates),
+    path('test', scraper.test_get),
 ] 
