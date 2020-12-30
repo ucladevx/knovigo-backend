@@ -3,42 +3,45 @@ from django.contrib.postgres.fields import ArrayField
 
 # 0 indexing for popular times array
 WEEKDAYS = [
-  (0, ("Monday")),
-  (1, ("Tuesday")),
-  (2, ("Wednesday")),
-  (3, ("Thursday")),
-  (4, ("Friday")),
-  (5, ("Saturday")),
-  (6, ("Sunday")),
+    (0, ("Monday")),
+    (1, ("Tuesday")),
+    (2, ("Wednesday")),
+    (3, ("Thursday")),
+    (4, ("Friday")),
+    (5, ("Saturday")),
+    (6, ("Sunday")),
 ]
 
-ALLOWED_TYPES = [] # add allowed store types
+ALLOWED_TYPES = []  # add allowed store types
 
 GEOHASH_LENGTH = 12
 
+
 class Place(models.Model):
     # go through for what's allowed to be NULL JSADKLFJSDA:
-    google_place_id = models.CharField(primary_key=True, max_length=60)
-    name = models.CharField(max_length=60) #populartimes
-    address = models.CharField(max_length=60) #populartimes
-    types = ArrayField(models.CharField(max_length=60), null=True, blank=True) #populartimes
-    x_coordinate = models.FloatField() #populartimes
-    y_coordinate = models.FloatField() #populartimes
+    place_id = models.CharField(primary_key=True, max_length=60)
 
+    # info taken from popular times
+    name = models.CharField(max_length=60)
+    address = models.CharField(max_length=60)
+    types = ArrayField(models.CharField(max_length=60), null=True, blank=True)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    rating = models.IntegerField()
+    rating_n = models.IntegerField()
+    # implicitly (using a 1-1 relationship) includes populartimes data (don't think we need the next line)
+    # popular_times = models.ForeignKey('PopularTimes', on_delete=models.CASCADE, null=True, blank=True)
 
-    rating = models.IntegerField() #populartimes
-    rating_n = models.IntegerField() #populartimes
-    phone_number = models.CharField(max_length=60) # add validator
-    hours = models.ForeignKey('BusinessHours', on_delete=models.CASCADE, null=True, blank=True)
-    website = models.CharField(max_length=60) #add validators
-    icon = models.CharField(max_length=60) # URL for icon - keep?
-    price_level = models.IntegerField() # add restrictions! (0-4)
-    #other business info
+    # TODO: info taken from places api
+    # phone_number = models.CharField(max_length=60) # add validator
+    # hours = models.ForeignKey('BusinessHours', on_delete=models.CASCADE, null=True, blank=True)
+    # website = models.CharField(max_length=60) #add validators
+    # icon = models.CharField(max_length=60) # URL for icon - keep?
+    # price_level = models.IntegerField() # add restrictions! (0-4)
+    # other business info
 
-    popular_times = models.ForeignKey('PopularTimes', on_delete=models.CASCADE, null=True, blank=True) #figure out
-
-    covid_updates = ArrayField(models.CharField(max_length=60), null=True, blank=True)
-    confirmed_staff_infected = models.IntegerField()
+    # stuff from user reports
+    # TODO: update this when a user report is submitted
 
     agg_density = models.IntegerField()
     agg_density_n = models.IntegerField()
@@ -46,27 +49,20 @@ class Place(models.Model):
     agg_social_n = models.IntegerField()
     agg_mask = models.IntegerField()
     agg_mask_n = models.IntegerField()
+    covid_updates = ArrayField(models.CharField(max_length=60), null=True, blank=True)  # todo
+
+    confirmed_staff_infected = models.IntegerField()  # not sure where we're getting this from
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-
     def __str__(self):
         return self.name
 
-# account for holidays?
-class BusinessHours(models.Model):
-    id = models.AutoField(primary_key=True)
-    place_id = models.ForeignKey('Place', on_delete=models.CASCADE) #check is cascade is correct!
-    weekday = models.IntegerField(choices=WEEKDAYS)
-    from_hour = models.TimeField()
-    to_hour = models.TimeField()
 
 class PopularTimes(models.Model):
-    id = models.AutoField(primary_key=True)
-    place_id = models.ForeignKey('Place', on_delete=models.CASCADE)
+    place = models.OneToOneField(Place, on_delete=models.CASCADE, primary_key=True)
 
-    #popular_times = ArrayField(ArrayField(models.IntegerField()))
     monday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
     tuesday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
     wednesday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
@@ -75,14 +71,25 @@ class PopularTimes(models.Model):
     saturday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
     sunday = ArrayField(models.IntegerField(null=True, blank=True), null=True, blank=True)
 
+
+# account for holidays?
+class BusinessHours(models.Model):
+    id = models.AutoField(primary_key=True)
+    place_id = models.ForeignKey('Place', on_delete=models.CASCADE)  # check is cascade is correct!
+    weekday = models.IntegerField(choices=WEEKDAYS)
+    from_hour = models.TimeField()
+    to_hour = models.TimeField()
+
+
 class UserReport(models.Model):
     report_id = models.AutoField(primary_key=True)
-    user_id = models.ForeignKey('User', on_delete=models.CASCADE, null=True) #ensure that we can have no users assigned for now
-    
+    user_id = models.ForeignKey('User', on_delete=models.CASCADE,
+                                null=True)  # ensure that we can have no users assigned for now
+
     # TODO: place/geohash should be connected to places api
-    place_id = models.ForeignKey('Place', on_delete=models.CASCADE, null=True) 
+    place_id = models.ForeignKey('Place', on_delete=models.CASCADE, null=True)
     geohash_id = models.ForeignKey('GeoHash', on_delete=models.CASCADE, null=True)
-    from_google_form = models.BooleanField() # differentiate between app vs google form reports
+    from_google_form = models.BooleanField()  # differentiate between app vs google form reports
 
     created = models.DateTimeField()
     updated = models.DateTimeField(auto_now=True)
@@ -113,11 +120,13 @@ class UserReport(models.Model):
     covid_notes = models.TextField()
     other_comments = models.TextField()
 
-#including as a placeholder for now
+
+# including as a placeholder for now
 class User(models.Model):
     id = models.AutoField(primary_key=True)
 
+
 class GeoHash(models.Model):
-    id = models.CharField(primary_key=True, max_length=GEOHASH_LENGTH) # change to a constant
+    id = models.CharField(primary_key=True, max_length=GEOHASH_LENGTH)  # change to a constant
     name = models.CharField(max_length=60)
     # add LA Public health data for this region
