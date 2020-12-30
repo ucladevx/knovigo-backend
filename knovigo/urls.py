@@ -19,4 +19,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('places/', include("knovigo.places.urls")), 
+    path('ladph/', include('knovigo.ladph.urls')),
 ]
+
