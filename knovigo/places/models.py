@@ -33,11 +33,11 @@ class Place(models.Model):
     # popular_times = models.ForeignKey('PopularTimes', on_delete=models.CASCADE, null=True, blank=True)
 
     # TODO: info taken from places api
-    # phone_number = models.CharField(max_length=60) # add validator
+    phone_number = models.CharField(max_length=60) # add validator
     # hours = models.ForeignKey('BusinessHours', on_delete=models.CASCADE, null=True, blank=True)
-    # website = models.CharField(max_length=60) #add validators
+    website = models.CharField(max_length=60) #add validators
     # icon = models.CharField(max_length=60) # URL for icon - keep?
-    # price_level = models.IntegerField() # add restrictions! (0-4)
+    price_level = models.IntegerField() # add restrictions! (0-4)
     # other business info
 
     # stuff from user reports
@@ -74,11 +74,21 @@ class PopularTimes(models.Model):
 
 # account for holidays?
 class BusinessHours(models.Model):
-    id = models.AutoField(primary_key=True)
-    place_id = models.ForeignKey('Place', on_delete=models.CASCADE)  # check is cascade is correct!
-    weekday = models.IntegerField(choices=WEEKDAYS)
-    from_hour = models.TimeField()
-    to_hour = models.TimeField()
+    place = models.OneToOneField(Place, on_delete=models.CASCADE, primary_key=True)
+    monday_open = models.IntegerField(null=True, blank=True)
+    monday_close = models.IntegerField(null=True, blank=True)
+    tuesday_open = models.IntegerField(null=True, blank=True)
+    tuesday_close = models.IntegerField(null=True, blank=True)
+    wednesday_open = models.IntegerField(null=True, blank=True)
+    wednesday_close = models.IntegerField(null=True, blank=True)
+    thursday_open = models.IntegerField(null=True, blank=True)
+    thursday_close = models.IntegerField(null=True, blank=True)
+    friday_open = models.IntegerField(null=True, blank=True)
+    friday_close = models.IntegerField(null=True, blank=True)
+    saturday_open = models.IntegerField(null=True, blank=True)
+    saturday_close = models.IntegerField(null=True, blank=True)
+    sunday_open = models.IntegerField(null=True, blank=True)
+    sunday_close = models.IntegerField(null=True, blank=True)
 
 
 class UserReport(models.Model):
