@@ -1,5 +1,5 @@
 from django.shortcuts import render # need?
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 
 # manually trigger scraper functions for testing (can probably delete later)
 from .report_scraper import scrape_user_report_data

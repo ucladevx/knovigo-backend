@@ -19,25 +19,25 @@ GEOHASH_LENGTH = 12
 
 class Place(models.Model):
     # go through for what's allowed to be NULL JSADKLFJSDA:
-    place_id = models.CharField(primary_key=True, max_length=60)
+    place_id = models.CharField(primary_key=True, max_length=120)
 
     # info taken from popular times
     name = models.CharField(max_length=60)
-    address = models.CharField(max_length=60)
+    address = models.TextField(null=True)
     types = ArrayField(models.CharField(max_length=60), null=True, blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
-    rating = models.IntegerField()
-    rating_n = models.IntegerField()
+    rating = models.IntegerField(null=True)
+    rating_n = models.IntegerField(null=True)
     # implicitly (using a 1-1 relationship) includes populartimes data (don't think we need the next line)
     # popular_times = models.ForeignKey('PopularTimes', on_delete=models.CASCADE, null=True, blank=True)
 
     # TODO: info taken from places api
-    phone_number = models.CharField(max_length=60) # add validator
+    phone_number = models.CharField(max_length=60, null=True) # add validator
     # hours = models.ForeignKey('BusinessHours', on_delete=models.CASCADE, null=True, blank=True)
-    website = models.CharField(max_length=60) #add validators
+    website = models.TextField(null=True) # add validators
     # icon = models.CharField(max_length=60) # URL for icon - keep?
-    price_level = models.IntegerField() # add restrictions! (0-4)
+    price_level = models.IntegerField(null=True) # add restrictions! (0-4)
     # other business info
 
     # stuff from user reports
