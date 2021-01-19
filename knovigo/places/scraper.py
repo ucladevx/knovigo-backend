@@ -21,11 +21,9 @@ WESTWOOD_LOCATIONS = [
     "ChIJSXU3ioO8woARK-IVICYTrVI",  # BJ's Restaurant and Brewery
 ]
 
-# TODO don't hardcode this
-api_key = ""
+api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
 
 
-# TODO fix this
 def get_place_data(place_id):
     # modify the fields we retrieve
     # do we rely more on the populartimes call to reduce redundant
@@ -39,7 +37,6 @@ def parse_place_data(data):
     try:
         price_level = data['result']['price_level']
     except KeyError:
-        print(data)
         price_level = 0
 
     try:
