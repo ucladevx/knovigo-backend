@@ -1,8 +1,9 @@
 from django.shortcuts import render # need?
-from django.http import JsonResponse # need ?
+from django.http import JsonResponse, HttpResponse
 
-# manually trigger user report scrape (can probably delete later)
+# manually trigger scraper functions for testing (can probably delete later)
 from .report_scraper import scrape_user_report_data
+from .scraper import update_place_data
 
 from rest_framework import viewsets
 
@@ -35,8 +36,13 @@ def place_detail(request, pk):
     if request.method == 'GET':
         serializer = PlaceSerializer(place)
         return JsonResponse(serializer.data)
-      
+
+
+def get_place_data_updates(request):
+    update_place_data()
+    return JsonResponse({'success': True})
+
+
 def get_user_report_data(request):
     count = scrape_user_report_data()
     return JsonResponse({'count': count})
-

@@ -47,7 +47,8 @@ INSTALLED_APPS = [
 # use https://crontab.guru/ for cronjob syntax
 CRONJOBS = [
     ('0 * * * *', 'knovigo.places.report_scraper.scrape_user_report_data', '>> ' + os.path.join(BASE_DIR,'log/places_cron.log') + ' 2>&1'),
-    ('0 * * * *', 'knovigo.ladph.scraper.scrape_public_health_data', '>> ' + os.path.join(BASE_DIR,'log/ladph_cron.log') + ' 2>&1')
+    ('0 * * * *', 'knovigo.ladph.scraper.scrape_public_health_data', '>> ' + os.path.join(BASE_DIR,'log/ladph_cron.log') + ' 2>&1'),
+    ('0 * * * *', 'knovigo.places.scraper.update_place_data', '>>' + os.path.join(BASE_DIR, 'log/scaper_cron.log') + ' 2>&1'),
 ]
 
 MIDDLEWARE = [
