@@ -6,3 +6,4 @@ python-geohash>=0.8.5
 requests
 git+https://github.com/m-wrzr/populartimes
 django-crontab>=0.7.1
+geopy

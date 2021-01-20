@@ -3,6 +3,9 @@ from rest_framework import serializers
 
 from .models import Place
 from .models import PopularTimes
+from .models import BusinessHours
+
+from geopy.distance import geodesic
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
     """
@@ -25,12 +28,26 @@ class DynamicFieldsModelSerializer(serializers.ModelSerializer):
                 self.fields.pop(field_name)
 
 class PlaceSerializer(DynamicFieldsModelSerializer):
+	distance = serializers.SerializerMethodField('getDistance')
+
+	def getDistance(self, obj):
+		x_coord = self.context.get("x_coordinate")
+		y_coord = self.context.get("y_coordinate")
+		if x_coord and y_coord:
+			distance = geodesic((x_coord, y_coord), (obj.x_coordinate, obj.y_coordinate)).miles
+		else:
+			distance = 0 # replace later !
+
 	class Meta:
 		model = Place
 		fields = ('__all__')
 
-
 class PopularTimesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PopularTimes
+        fields = ('__all__')
+
+class BusinessHoursSerializer(serializers.ModelSerializer):
 	class Meta:
-		model = PopularTimes
+		model = BusinessHours
 		fields = ('__all__')
