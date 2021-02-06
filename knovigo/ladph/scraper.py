@@ -208,12 +208,12 @@ def get_heatmap_data(request):
             [
                 {
                     "lat": 34.0635,
-                    "longitude": 118.4455,
+                    "lng": -118.4455,
                     "intensity": 715,
                 },
                 {
                     "lat": 34.0913,
-                    "longitude": 118.2936,
+                    "lng": -118.2936,
                     "intensity": 973,
                 }
             ], safe=False
