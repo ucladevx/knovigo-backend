@@ -2,56 +2,58 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 
+
+# temporary
+from django.http import JsonResponse
+
+
 def printCCSDB(db):
-    #iterate through table
+    # iterate through table
     for t in db:
-        #iterate through rows in table
+        # iterate through rows in table
         for vals in t:
-            #print row
-            print (vals)
-        #so that we can tell when one table ends and new begins
-        print ("_____NEW TABLE______")
+            # print row
+            print(vals)
+        # so that we can tell when one table ends and new begins
+        print("_____NEW TABLE______")
 
 
-#table 0 - first table of Los Angeles County Case Summary
+# table 0 - first table of Los Angeles County Case Summary
 def scrapeCountyCaseSummary(table):
     db = []
     t = []
-    #iterate through city/community table
-    for row in table.findAll('tr'):
-        tds = row.findAll('td');
+    # iterate through city/community table
+    for row in table.findAll("tr"):
+        tds = row.findAll("td")
         vals = []
         for i in tds:
             vals.append(i.text)
-        #if row is empty, should not consider it
-        if (all([i == "" for i in vals])):
+        # if row is empty, should not consider it
+        if all([i == "" for i in vals]):
             continue
-        #if row starts with -, it is a subrow of whatever the previous table head was
-        elif (vals[0].startswith("-")):
-            #print ("Table Row: " + str(vals))
+        # if row starts with -, it is a subrow of whatever the previous table head was
+        elif vals[0].startswith("-"):
+            # print ("Table Row: " + str(vals))
             t.append(vals)
 
         else:
-            #print ("Table Head: " + str(vals))
+            # print ("Table Head: " + str(vals))
             db.append(t)
             t = []
             t.append(vals)
     db.append(t)
-    #at the very beginning there is something with the for loop where
-    #it appends an empty table
+    # at the very beginning there is something with the for loop where
+    # it appends an empty table
     db = db[1:]
 
     printCCSDB(db)
     return db
 
-def printDB(db):
-    return len(db)
-    '''
-    for i in db:
-        print (str(i))'''
 
 def scrapeTable(table, headerKey):
-    thead = table.find('thead')
+
+    # gets the label of each column from table head
+    thead = table.find("thead")
     db = []
     head = []
     for header in thead:
@@ -59,9 +61,10 @@ def scrapeTable(table, headerKey):
         for i in tds:
             head.append(i.text)
 
+    # gets the the rest of the data from the actual table rows
     db.append(head)
-    for row in table.findAll('tr'):
-        tds = row.findAll('td');
+    for row in table.findAll("tr"):
+        tds = row.findAll("td")
         data = []
         for i in tds:
             data.append(i.text)
@@ -69,60 +72,167 @@ def scrapeTable(table, headerKey):
     db.pop(1)
     return db
 
-#table 1 - Second Table of Los Angeles County Case Summary
-def scrapeCityCommunityCaseSummary(table, headerKey = 'th'):
-    return scrapeTable(table, headerKey)
 
-#table 2 -
-#LAC DPH Laboratory Confirmed COVID-19 Recent 14-day Cumulative
+# table 1 - Second Table of Los Angeles County Case Summary
+def scrapeCityCommunityCaseSummary(table, headerKey="th"):
+    try:
+        return scrapeTable(table, headerKey)
+    except Exception:
+        raise KeyError("Error with trying to scrape the table itself from the website.")
+
+
+# table 2 -
+# LAC DPH Laboratory Confirmed COVID-19 Recent 14-day Cumulative
 # Case and Rate per 100,000 by the Top 25 Cities/Communities
-def scrapeLACDPHT25(table, headerKey = 'td'):
-    return scrapeTable(table, headerKey)
+def scrapeLACDPHT25(table, headerKey="td"):
+    try:
+        return scrapeTable(table, headerKey)
+    except Exception:
+        raise KeyError("Error with trying to scrape the table itself from the website.")
 
-#table 3 - County of LA
-#LAC DPH Laboratory Confirmed COVID-19 14-day Cumulative Case
+
+# table 3 - County of LA
+# LAC DPH Laboratory Confirmed COVID-19 14-day Cumulative Case
 # and Rate Recent Trends by City/Community1,2
-def scrapeLACDPHLACounty(table, headerKey = 'td'):
-    return scrapeTable(table, headerKey)
+def scrapeLACDPHLACounty(table, headerKey="td"):
+    try:
+        return scrapeTable(table, headerKey)
+    except Exception:
+        raise KeyError("Error with trying to scrape the table itself from the website.")
 
-#table 4 - Cities
-#LAC DPH Laboratory Confirmed COVID-19 14-day Cumulative Case
+
+# table 4 - Cities
+# LAC DPH Laboratory Confirmed COVID-19 14-day Cumulative Case
 # and Rate Recent Trends by City/Community1,2
-def scrapeLACDPHCities(table, headerKey = 'th'):
-    return scrapeTable(table, headerKey)
+def scrapeLACDPHCities(table, headerKey="th"):
+    try:
+        return scrapeTable(table, headerKey)
+    except Exception:
+        raise KeyError("Error with trying to scrape the table itself from the website.")
 
-#table 6 - NonRes Covid Counts
-#Los Angeles County Non-Residential Settings Meeting the Criteria
+
+# table 6 - NonRes Covid Counts
+# Los Angeles County Non-Residential Settings Meeting the Criteria
 # of Three or More Laboratory-confirmed COVID-19 Cases
-def scrapeNonResCases(table, headerKey = 'th'):
-    return scrapeTable(table, headerKey)
+def scrapeNonResCases(table, headerKey="th"):
+    try:
+        return scrapeTable(table, headerKey)
+    except Exception:
+        raise KeyError("Error with trying to scrape the table itself from the website.")
 
-#table 7 - Homeless Service Settings Covid Cases
-#Los Angeles County Homeless Service Settings Meeting the Criteria
+
+# table 7 - Homeless Service Settings Covid Cases
+# Los Angeles County Homeless Service Settings Meeting the Criteria
 # of At Least One Laboratory-confirmed COVID-19 Case
-def scrapeLACHomelessSettingCovidCases(table, headerKey = 'th'):
-    return scrapeTable(table, headerKey)
+def scrapeLACHomelessSettingCovidCases(table, headerKey="th"):
+    try:
+        return scrapeTable(table, headerKey)
+    except Exception:
+        raise KeyError("Error with trying to scrape the table itself from the website.")
 
-def scrapeLACEducationalSettingCovidCases(table, headerKey = 'th'):
-    return scrapeTable(table, headerKey)
 
-def scrapeComplianceCitations(table, headerKey = 'td'):
+def scrapeLACEducationalSettingCovidCases(table, headerKey="th"):
+    try:
+        return scrapeTable(table, headerKey)
+    except Exception:
+        raise KeyError("Error with trying to scrape the table itself from the website.")
+
+
+# NOT IMPLEMENTED BECAUSE NOT NEEDED
+def scrapeComplianceCitations(table, headerKey="td"):
     pass
-    #print(table.find(div, class = ))
+    # print(table.find(div, class = ))
 
+
+def heatMapDataScraper():
+    url = (
+        "http://publichealth.lacounty.gov/media/coronavirus/locations.htm#case-summary"
+    )
+
+    # create object by parsing the raw html content of the url and then get the list of tables
+    try:
+        r = requests.get(url)
+        soup = BeautifulSoup(r.content, "html.parser")
+        tables = soup.findAll("table")
+
+    # if getting the html table contents results in an error, then somethings wrong with the site
+    except:
+        return (None, 1)
+
+    # table[4] is the table called
+    # LAC DPH Laboratory Confirmed COVID-19 14-day Cumulative Case and Rate Recent Trends by City/Community
+    # which is what we use for the heatmap
+    try:
+        data = scrapeLACDPHLACounty(tables[4])
+
+    # something went wrong with the scraping function
+    except KeyError:
+        return (None, 2)
+
+    # something unknown went wrong
+    except Exception:
+        return (None, 3)
+
+    # it worked!
+    return (data, 0)
+
+
+api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
+
+
+def load_heatmap_data():
+    data, status = heatMapDataScraper()
+
+    if status == 0:
+        # load into django
+        try:
+            pass
+        except KeyError:
+            print("ERROR WITH FUNCTION: FAILED LOADING HEATMAP DATA INTO DJANGO")
+        except Exception:
+            print("UNKNOWN ERROR: FAILED LOADING HEATMAP DATA INTO DJANGO")
+    elif status == 1:
+        print("SOMETHING WRONG WITH WEBSITE")
+    elif status == 2:
+        print("SOMETHINGS WRONG WITH SCRAPING FUNCTION")
+    elif status == 3:
+        print("SOMETHING UNKNOWN WITH SCRAPING")
+
+
+def get_heatmap_data():
+    # order is Los Angeles - Westwood, Los Angeles - East Hollywood,
+    # intensity is Crude Case Rate
+    return JsonResponse(
+        {
+            "latitude": [34.0635, 34.0913],
+            "longitude": [118.4455, 118.2936],
+            "intensity": [715, 973],
+        }
+    )
+
+
+if __name__ == "__main__":
+    load_heatmap_data()
+
+
+'''
+# Test Code that just ran through every table in the url from top to bottom,
+# and used the appropriate scraper function
 def scrape_public_health_data():
-    url = "http://publichealth.lacounty.gov/media/coronavirus/locations.htm#case-summary"
+    url = (
+        "http://publichealth.lacounty.gov/media/coronavirus/locations.htm#case-summary"
+    )
     r = requests.get(url)
-    #create object by parsing the raw html content of the url
-    soup = BeautifulSoup(r.content, 'html.parser')
-    tables = soup.findAll('table')
+    # create object by parsing the raw html content of the url
+    soup = BeautifulSoup(r.content, "html.parser")
+    tables = soup.findAll("table")
     s = 0
     printCCSDB(scrapeCountyCaseSummary(tables[0]))
-    s+= printDB(scrapeCityCommunityCaseSummary(tables[1]))
-    s+= printDB(scrapeLACDPHT25(tables[2]))
-    s+= printDB(scrapeLACDPHLACounty(tables[3]))
-    s+= printDB(scrapeLACDPHCities(tables[4]))
-    '''
+    s += printDB(scrapeCityCommunityCaseSummary(tables[1]))
+    s += printDB(scrapeLACDPHT25(tables[2]))
+    s += printDB(scrapeLACDPHLACounty(tables[3]))
+    s += printDB(scrapeLACDPHCities(tables[4]))
+    """
     SKIPPED TABLE 5 -
     Residential Congregate and Acute Care Settings Meeting the
     Criteria of (1) At Least One Laboratory-confirmed Resident
@@ -131,19 +241,11 @@ def scrape_public_health_data():
     or More Laboratory-Confirmed Staff in Shared Housing
 
     NO NEED FOR INFO
-    '''
+    """
 
-    s+= printDB(scrapeNonResCases(tables[6]))
-    s+= printDB(scrapeLACHomelessSettingCovidCases(tables[7]))
-    s+= printDB(scrapeLACEducationalSettingCovidCases(tables[8]))
-    #s+= printDB(scrapeComplianceCitations(tables[9]))
-    print (s)
-
-
-
-
-'''print (len(tables))
-for table in tables:
-    for td in table.findAll('td'):
-        print (td.text)
-    print ("NEXT TABLE")'''
+    s += printDB(scrapeNonResCases(tables[6]))
+    s += printDB(scrapeLACHomelessSettingCovidCases(tables[7]))
+    s += printDB(scrapeLACEducationalSettingCovidCases(tables[8]))
+    # s+= printDB(scrapeComplianceCitations(tables[9]))
+    print(s)
+'''
