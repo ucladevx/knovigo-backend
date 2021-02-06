@@ -199,16 +199,20 @@ def load_heatmap_data():
         print("SOMETHING UNKNOWN WITH SCRAPING")
 
 
-def get_heatmap_data():
+def get_heatmap_data(request):
+
     # order is Los Angeles - Westwood, Los Angeles - East Hollywood,
     # intensity is Crude Case Rate
-    return JsonResponse(
-        {
-            "latitude": [34.0635, 34.0913],
-            "longitude": [118.4455, 118.2936],
-            "intensity": [715, 973],
-        }
-    )
+    if request.method == "GET":
+        return JsonResponse(
+            {
+                "latitude": [34.0635, 34.0913],
+                "longitude": [118.4455, 118.2936],
+                "intensity": [715, 973],
+            }
+        )
+    else:
+        return JsonResponse("ERROR: NOT A GET REQUEST")
 
 
 if __name__ == "__main__":
