@@ -39,7 +39,6 @@ def scrape_user_report_data():
 
     count = 0
     for row in reader:
-        print(row)
         timestamp = parser.parse(row[0] + " -0800")
         if timestamp <= timefilter:
             continue
@@ -90,19 +89,19 @@ def scrape_user_report_data():
             outlets_checkbox = 2
 
         # update values in models table
-        if place_id is not "Other":
+        if place_id != "Other":
             # we are guaranteed to have the place model stored already
             # and therefore do not need to create a try except block for this
-            place_model = Place.objects.get(id=place_id)
-            place_model.agg_density = (place_model.agg_density * place_model.agg_density_n + crowded) / (place_model.agg_density_n + 1)
+            place_model = Place.objects.get(pk=place_id)
+            place_model.agg_density += crowded
             place_model.agg_density_n += 1
-            place_model.agg_social = (place_model.agg_social * place_model.agg_social_n + social_distancing) / (place_model.agg_social_n + 1)
+            place_model.agg_social += social_distancing
             place_model.agg_social_n += 1
-            place_model.agg_mask = (place_model.agg_mask * place_model.agg_mask_n + mask_wearing) / (place_model.agg_mask_n + 1)
+            place_model.agg_mask += mask_wearing
             place_model.agg_mask_n += 1
             place_model.save()
 
-        UserReport.objects.create(user_id=None, place_id=place_id, geohash_id=None, from_google_form=True,
+        UserReport.objects.create(user_id=None, place_id=place_model, geohash_id=None, from_google_form=True,
                                   created=timestamp, start=start, end=end, density_rating=crowded,
                                   social_distancing_rating=social_distancing,
                                   mask_rating=mask_wearing, covid_rating=covid_protocol,
