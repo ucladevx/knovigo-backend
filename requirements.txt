@@ -7,3 +7,5 @@ requests
 git+https://github.com/m-wrzr/populartimes
 django-crontab>=0.7.1
 geopy
+beautifulsoup4>=4.9.3
+
