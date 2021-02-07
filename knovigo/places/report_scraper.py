@@ -7,20 +7,7 @@ from io import StringIO
 from dateutil import parser
 from .models import UserReport
 from .models import Place
-
-WESTWOOD_LOCATIONS = {
-    "Target": "ChIJM2_CO4G8woARCvO-wn-MObo",  # Westwood Target
-    "Trader Joe's": "ChIJDepxE4G8woAR4BETlQXlSt8",  # Westwood Trader Joe's
-    "CVS": "ChIJU9RXX4G8woARM6tDKbo-o40",  # Westwood CVS
-    "Whole Foods": "ChIJf5fVvoO8woARChfRh6MOi8o",  # Westwood Whole Foods
-    "Ralph's": "ChIJz3nnNoG8woARM2mO30LUT-Q",  # Westwood Ralph's
-    "Barney's Beanery": "ChIJ9bElwYO8woARyFBerBC6aRs",  # Westwood Barney's Beanery
-    "Tongva Steps area": "EidKYW5zcyBTdGVwcywgTG9zIEFuZ2VsZXMsIENBIDkwMDk1LCBVU0EiLiosChQKEgmP7FgEibzCgBGSTtcJJ1JtZhIUChIJE9on3F3HwoAR9AhGJW_fL-I",
-    # Tongva steps
-    "Diddy Riese": "ChIJD28uC4S8woARUk1Z5qNqmjk",  # Westwood Diddy Riese
-    "BJ's Restaurant & Brewhouse": "ChIJSXU3ioO8woARK-IVICYTrVI",  # BJ's Restaurant and Brewery
-}
-
+from .scraper import WESTWOOD_LOCATIONS
 
 def scrape_user_report_data():
     if len(UserReport.objects.filter(from_google_form=True)) == 0:
