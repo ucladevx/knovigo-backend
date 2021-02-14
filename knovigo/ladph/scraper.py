@@ -180,11 +180,16 @@ def heatMapDataScraper():
 api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
 
 
+def store_data(data):
+    pass
+
+
 def load_heatmap_data():
     data, status = heatMapDataScraper()
 
     if status == 0:
         # load into django
+        store_data(data)
         try:
             pass
         except KeyError:
@@ -216,7 +221,9 @@ def get_heatmap_data(request):
 
 
 if __name__ == "__main__":
-    load_heatmap_data()
+    data, status = heatMapDataScraper()
+    print(status)
+    [print(i) for i in data]
 
 
 '''
