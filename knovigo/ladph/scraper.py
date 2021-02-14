@@ -210,11 +210,18 @@ def get_heatmap_data(request):
     # intensity is Crude Case Rate
     if request.method == "GET":
         return JsonResponse(
-            {
-                "latitude": [34.0635, 34.0913],
-                "longitude": [118.4455, 118.2936],
-                "intensity": [715, 973],
-            }
+            [
+                {
+                    "lat": 34.0635,
+                    "lng": -118.4455,
+                    "intensity": 715,
+                },
+                {
+                    "lat": 34.0913,
+                    "lng": -118.2936,
+                    "intensity": 973,
+                }
+            ], safe=False
         )
     else:
         return JsonResponse("ERROR: NOT A GET REQUEST")
