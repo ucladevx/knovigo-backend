@@ -2,9 +2,18 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 
-
 # temporary
 from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import model_to_dict
+
+# from models import LADPH_Confirmed_Covid_By_City_Community, LADPH_CCBCC_Manager
+
+
+try:
+    import requests, json
+except:
+    raise ImportError
 
 
 def printCCSDB(db):
@@ -180,8 +189,173 @@ def heatMapDataScraper():
 api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
 
 
+def make_id_url(place_name):
+    fields = ["place_id"]
+    input_type = "textquery"
+    name = ""
+    for i in place_name:
+        if i == " ":
+            name += "%20"
+        else:
+            name += i
+
+    url = (
+        "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
+        + "input="
+        + name
+        + "&inputtype="
+        + input_type
+    )
+    url += "&fields="
+    for f in fields:
+        url += f + ","
+    # we can't have the fields argument end with a comma
+    if url.endswith(","):
+        url = url[:-1]
+    url += "&key="
+    url += api_key
+    return url
+
+
+def get_place_id(place_name):
+    url = make_id_url(place_name)
+    r = requests.get(url)
+    d = r.json()
+    try:
+        place_id = d["candidates"][0]["place_id"]
+    except:
+        place_id = None
+        print("place id not found")
+    return place_id
+
+
+def construct_request(place_name, fields):
+    """
+            Gets Place ID of a city from Google Places API
+            Sample GET Request URL:
+    https://maps.googleapis.com/maps/api/place/findplacefromtext/json?
+    input=Westwoord%20Los%20Angeles
+    &inputtype=textquery
+    &fields=place_id,geometry
+    &key=AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI
+            returns (place_id, latitude, longitude)
+    """
+    if isinstance(place_name, str) and len(place_name) != 0:
+        input_type = "textquery"
+        name = ""
+        for i in place_name:
+            if i == " ":
+                name += "%20"
+            else:
+                name += i
+
+        url = (
+            "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
+            + "input="
+            + name
+            + "&inputtype="
+            + input_type
+        )
+        url += "&fields="
+        for f in fields:
+            url += f + ","
+        # we can't have the fields argument end with a comma
+        if url.endswith(","):
+            url = url[:-1]
+        url += "&key="
+        url += api_key
+        return url
+    return None
+
+
+def get_id_and_coords(place_name):
+    """
+    Returns (place_id, latitude, longitude) of place_name
+    by querying google places API
+    """
+    fields = ["place_id", "geometry"]
+    url = construct_request(place_name, fields)
+    if url == None:
+        print("Bad parameters to construct Google Places Request")
+        return None
+
+    r = requests.get(url)
+    d = r.json()
+    if not d or "status" not in d or d["status"] != "OK":
+        print("Bad Request to Google Places")
+        return None
+    print(d)
+    try:
+        coords = d["candidates"][0]["geometry"]["location"]
+        lat, lng = coords["lat"], coords["lng"]
+        place_id = d["candidates"][0]["place_id"]
+    except LookupError:
+        print("Error With Response from Google Places")
+        return None
+    except Exception:
+        print("Unknown Error")
+        return None
+
+    d = dict()
+    d["id"] = place_id
+    d["lat"] = lat
+    d["lng"] = lng
+    return d
+
+
+def create_instance(lst):
+    """
+    Function creates dict() for a LADPH_CCDB instance from a list of data values
+    lst is a list of datas for a specific city:
+    [City Name, Cases, Crude Case Rate, Adjusted Case Rate, Unstable Adjusted Rate, 2018 PEPS Pop.]
+    """
+    if len(lst) != 6:
+        return None
+
+    city_name, cases, CCR, ACR, UAR, PEPS = lst
+
+    place_info = get_coords(place_name)
+    if not place_info:
+        return None
+
+    d = dict()
+
+    d["place_id"] = place_info["id"]
+    d["place_name"] = city_name
+    d["total_cases"] = cases
+    d["latitude"] = place_info["lat"]
+    d["longitude"] = place_info["lng"]
+    d["crude_case_rate"] = CCR
+    d["adjusted_case_rate"] = ACR
+    d["unstable_adjusted_rate"] = UAR
+    d["peps_population"] = PEPS
+    return d
+
+
 def store_data(data):
-    pass
+    for row in data:
+        if not row:
+            continue
+
+        # creates a dictionary mapping a key to every value in the row
+        try:
+            d = create_instance(row)
+        except:
+            print("Failed to create dict for row in data")
+            continue
+        if not d:
+            continue
+
+        # update the model if it exists
+        try:
+            obj = LADPH_Confirmed_Covid_By_City_Community.get(pk=d["place_id"])
+            for (key, val) in d.items():
+                setattr(obj, key, val)
+            obj.save()
+
+        except ObjectDoesNotExist:
+            obj = LADPH_Confirmed_Covid_By_City_Community(**d)
+            obj.save()
 
 
 def load_heatmap_data():
@@ -209,6 +383,12 @@ def get_heatmap_data(request):
     # order is Los Angeles - Westwood, Los Angeles - East Hollywood,
     # intensity is Crude Case Rate
     if request.method == "GET":
+        data = LADPH_Confirmed_Covid_By_City_Community.objects.all()
+        responseData = []
+        for i in data:
+            responseData.append(model_to_dict(i))
+        return JsonResponse(responseData, safe=False)
+        """
         return JsonResponse(
             [
                 {
@@ -220,9 +400,11 @@ def get_heatmap_data(request):
                     "lat": 34.0913,
                     "lng": -118.2936,
                     "intensity": 973,
-                }
-            ], safe=False
+                },
+            ],
+            safe=False,
         )
+        """
     else:
         return JsonResponse("ERROR: NOT A GET REQUEST")
 
@@ -231,6 +413,7 @@ if __name__ == "__main__":
     data, status = heatMapDataScraper()
     print(status)
     [print(i) for i in data]
+    print(get_id_and_coords("Westwood"))
 
 
 '''
