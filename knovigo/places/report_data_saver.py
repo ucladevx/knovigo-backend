@@ -5,7 +5,7 @@ from .models import Place, UserReport
 from django.core.exceptions import FieldError
 from datetime import datetime
 
-# returns 0 on failure, 1 on success
+# returns 1 on failure, 0 on success
 def save_data_from_report(request):
     data = json.loads(request.body)
     now = datetime.now()
@@ -14,11 +14,13 @@ def save_data_from_report(request):
         name = data["name"]
         place_id = WESTWOOD_LOCATIONS[name]
 
-        # TODO: need to change these two based on frontend input
+        now = datetime.now()
+
+        now_string = now.strftime("%Y-%m-%d ")
         start_stamp = data["start"]
-        start = datetime.fromtimestamp(start_stamp).strftime("%Y-%m-%d %H:%M:%S-0800")
+        start = now_string + datetime.fromtimestamp(start_stamp).strftime("%H:%M:%S-0800")
         end_stamp = data["end"]
-        end = datetime.fromtimestamp(end_stamp).strftime("%Y-%m-%d %H:%M:%S-0800")
+        end = now_string + datetime.fromtimestamp(end_stamp).strftime("%H:%M:%S-0800")
         density_rating = data["density"]
         social_distancing_rating = data["social_distancing"]
         mask_rating = data["mask"]
@@ -37,10 +39,10 @@ def save_data_from_report(request):
         wifi_checkbox = data["wifi_avlbl"]
         outlets_checkbox = data["outlets_avlbl"]
 
-        coivd_notes = data["covid_notes"]
+        covid_notes = data["covid_notes"]
         other_comments = data["other_comments"]
     except KeyError:
-        return 0, "Key not found"
+        return 1, "Key not found"
     # update the corresponding place ID
     if place_id != "Other":
         # we are guaranteed to have the place model stored already
@@ -54,7 +56,7 @@ def save_data_from_report(request):
         place_model.agg_mask_n += 1
         place_model.save()
     else:
-        return 0, "placeID not found"
+        return 1, "placeID not found"
     try:
         UserReport.objects.create(user_id=None, place_id=place_model, geohash_id=None, from_google_form=False,
                                   created=timestamp, start=start, end=end, density_rating=density_rating,
@@ -68,8 +70,8 @@ def save_data_from_report(request):
                                   outdoor_seating_checkbox=outdoor_seating_checkbox,
                                   social_distancing_checkbox=social_distancing_checkbox,
                                   bathroom_checkbox=bathroom_checkbox, wifi_checkbox=wifi_checkbox,
-                                  outlets_checkbox=outlets_checkbox)
+                                  outlets_checkbox=outlets_checkbox, other_comments=other_comments)
     except FieldError:
-        return 0, "unable to create user report object"
+        return 1, "unable to create user report object"
 
-    return 1, "success"
+    return 0, "success"

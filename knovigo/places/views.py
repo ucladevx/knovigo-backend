@@ -1,4 +1,3 @@
-from django.shortcuts import render  # need?
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 # manually trigger scraper functions for testing (can probably delete later)
@@ -53,7 +52,7 @@ def get_user_report_data(request):
 @csrf_exempt
 def save_app_report(request):
     ret_value, ret_string = save_data_from_report(request)
-    if ret_value == 0:
+    if ret_value == 1:
         print("Error", ret_string)
-        return JsonResponse({'success': False, 'reason': ret_string})
+        return JsonResponse({'success': False, 'err_msg': ret_string})
     return JsonResponse({'success': True})
