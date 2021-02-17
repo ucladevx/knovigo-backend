@@ -49,7 +49,11 @@ def get_user_report_data(request):
     count = scrape_user_report_data()
     return JsonResponse({'count': count})
 
+
 @csrf_exempt
 def save_app_report(request):
-    save_data_from_report(request)
-    return JsonResponse({'succ':'ess'})
+    ret_value, ret_string = save_data_from_report(request)
+    if ret_value == 0:
+        print("Error", ret_string)
+        return JsonResponse({'success': False, 'reason': ret_string})
+    return JsonResponse({'success': True})
