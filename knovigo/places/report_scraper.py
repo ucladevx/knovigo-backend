@@ -100,7 +100,7 @@ def scrape_user_report_data():
                                   outdoor_seating_checkbox=outdoor_seating_checkbox,
                                   social_distancing_checkbox=social_distancing_checkbox,
                                   bathroom_checkbox=bathroom_checkbox, wifi_checkbox=wifi_checkbox,
-                                  outlets_checkbox=outlets_checkbox)
+                                  outlets_checkbox=outlets_checkbox, other_comments=other_comments)
 
         count += 1
 
