@@ -8,7 +8,7 @@ except:
 api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
 
 
-class LADPH_Confirmed_Covid_By_City_Community(models.Model):
+class Covid_HeatMap_Stats(models.Model):
     # https://developers.google.com/places/web-service/search refer to this for place id
     # the api key is in places/scraper.py
 

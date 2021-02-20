@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 
-# from models import LADPH_Confirmed_Covid_By_City_Community, LADPH_CCBCC_Manager
+from .models import Covid_HeatMap_Stats
 
 
 try:
@@ -284,7 +284,6 @@ def get_id_and_coords(place_name):
     if not d or "status" not in d or d["status"] != "OK":
         print("Bad Request to Google Places")
         return None
-    print(d)
     try:
         coords = d["candidates"][0]["geometry"]["location"]
         lat, lng = coords["lat"], coords["lng"]
@@ -314,7 +313,7 @@ def create_instance(lst):
 
     city_name, cases, CCR, ACR, UAR, PEPS = lst
 
-    place_info = get_coords(place_name)
+    place_info = get_id_and_coords(city_name)
     if not place_info:
         return None
 
@@ -333,32 +332,36 @@ def create_instance(lst):
 
 
 def store_data(data):
+    print("Number of Rows: " + str(len(data)))
     for row in data:
         if not row:
+            print("skipped")
             continue
 
         # creates a dictionary mapping a key to every value in the row
         try:
             d = create_instance(row)
-        except:
-            print("Failed to create dict for row in data")
+            print(d["place_name"])
+        except Exception as e:
+            print(e)
             continue
         if not d:
+            print("skipped")
             continue
 
         # update the model if it exists
         try:
-            obj = LADPH_Confirmed_Covid_By_City_Community.get(pk=d["place_id"])
+            obj = Covid_HeatMap_Stats.objects.get(pk=d["place_id"])
             for (key, val) in d.items():
                 setattr(obj, key, val)
             obj.save()
 
         except ObjectDoesNotExist:
-            obj = LADPH_Confirmed_Covid_By_City_Community(**d)
+            obj = Covid_HeatMap_Stats(**d)
             obj.save()
 
 
-def load_heatmap_data():
+def load_heatmap_data(request):
     data, status = heatMapDataScraper()
 
     if status == 0:
@@ -376,77 +379,47 @@ def load_heatmap_data():
         print("SOMETHINGS WRONG WITH SCRAPING FUNCTION")
     elif status == 3:
         print("SOMETHING UNKNOWN WITH SCRAPING")
+    return JsonResponse({"SUCCESS": True})
 
 
 def get_heatmap_data(request):
+    """
+    return JsonResponse(
+        [
+            {
+                "lat": 34.0635,
+                "lng": -118.4455,
+                "intensity": 715,
+            },
+            {
+                "lat": 34.0913,
+                "lng": -118.2936,
+                "intensity": 973,
+            },
+        ],
+        safe=False,
+    )
+    """
 
     # order is Los Angeles - Westwood, Los Angeles - East Hollywood,
     # intensity is Crude Case Rate
     if request.method == "GET":
-        data = LADPH_Confirmed_Covid_By_City_Community.objects.all()
+        data = Covid_HeatMap_Stats.objects.all()
         responseData = []
         for i in data:
-            responseData.append(model_to_dict(i))
+            djData = model_to_dict(i)
+            d = dict()
+            d["lat"] = djData["latitude"]
+            d["lng"] = djData["longitude"]
+            d["intensity"] = djData["crude_case_rate"]
+            responseData.append(d)
         return JsonResponse(responseData, safe=False)
-        """
-        return JsonResponse(
-            [
-                {
-                    "lat": 34.0635,
-                    "lng": -118.4455,
-                    "intensity": 715,
-                },
-                {
-                    "lat": 34.0913,
-                    "lng": -118.2936,
-                    "intensity": 973,
-                },
-            ],
-            safe=False,
-        )
-        """
     else:
         return JsonResponse("ERROR: NOT A GET REQUEST")
 
 
 if __name__ == "__main__":
     data, status = heatMapDataScraper()
-    print(status)
-    [print(i) for i in data]
-    print(get_id_and_coords("Westwood"))
-
-
-'''
-# Test Code that just ran through every table in the url from top to bottom,
-# and used the appropriate scraper function
-def scrape_public_health_data():
-    url = (
-        "http://publichealth.lacounty.gov/media/coronavirus/locations.htm#case-summary"
-    )
-    r = requests.get(url)
-    # create object by parsing the raw html content of the url
-    soup = BeautifulSoup(r.content, "html.parser")
-    tables = soup.findAll("table")
-    s = 0
-    printCCSDB(scrapeCountyCaseSummary(tables[0]))
-    s += printDB(scrapeCityCommunityCaseSummary(tables[1]))
-    s += printDB(scrapeLACDPHT25(tables[2]))
-    s += printDB(scrapeLACDPHLACounty(tables[3]))
-    s += printDB(scrapeLACDPHCities(tables[4]))
-    """
-    SKIPPED TABLE 5 -
-    Residential Congregate and Acute Care Settings Meeting the
-    Criteria of (1) At Least One Laboratory-confirmed Resident
-    or (2) Two or More Laboratory-confirmed Staff in Long-Term Care
-    Facilities that are not Skilled Nursing Facilities, or (3) Three
-    or More Laboratory-Confirmed Staff in Shared Housing
-
-    NO NEED FOR INFO
-    """
-
-    s += printDB(scrapeNonResCases(tables[6]))
-    s += printDB(scrapeLACHomelessSettingCovidCases(tables[7]))
-    s += printDB(scrapeLACEducationalSettingCovidCases(tables[8]))
-    # s+= printDB(scrapeComplianceCitations(tables[9]))
-    print(s)
-'''
+    # print(status)
+    # [print(i) for i in data]
+    # print(get_id_and_coords("Westwood"))

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#./setup.sh
+./setup.sh
 
 service cron start
 mkdir log 2> /dev/null
@@ -8,6 +8,7 @@ rm -f log/places_cron.log
 rm -f log/ladph_cron.log
 
 python manage.py makemigrations places
+python manage.py makemigrations ladph
 python manage.py migrate
 
 python manage.py crontab add
