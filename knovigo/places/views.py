@@ -1,6 +1,9 @@
 from django.shortcuts import render # need?
 from django.http import JsonResponse, HttpResponse
 
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import GEOSGeometry,Point
+
 # manually trigger scraper functions for testing (can probably delete later)
 from .report_scraper import scrape_user_report_data
 from .scraper import update_place_data
@@ -40,10 +43,12 @@ def place_location_list(request, latitude, longitude):
 	List all places - ratings, name, distance, expensiveness, types, safety data
 	"""
 	if request.method == 'GET':
-		fields = ("place_id", "address", "name", "businessHours", "rating", "rating_n", "price_level", "types", "latitude", "longitude", "agg_density", "agg_social", "agg_mask")#, "distance")
+		fields = ("place_id", "address", "name", "businessHours", "rating", "rating_n", "price_level", "types", "latitude", "longitude", "agg_density", "agg_social", "agg_mask", "distance", "coordinates")
+		reference_point = Point(latitude, longitude, srid=4326)
+		places = Place.objects.all().annotate(distance=Distance("coordinates", reference_point)).order_by("distance")
+		# places = Place.objects.all().annotate(distance=Distance(F('coordinates'), Point(latitude, longitude, srid=4326))).order_by("distance")
 		# places = Place.objects.all().only(*fields).order_by("distance") # refine order by filter with more data
 		# places = Place.objects.all().annotate(distance=geodesic((F('latitude'), F('longitude')), (34.0611873, -118.4469309)).miles).order_by("distance")
-		places = Place.objects.all()
 		serializer = PlaceSerializer(places, many=True, context={'request': request}, fields = fields)
 		return JsonResponse(serializer.data, safe=False)
 

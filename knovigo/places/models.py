@@ -1,5 +1,7 @@
-from django.db import models
+# from django.db import models
 from django.contrib.postgres.fields import ArrayField
+
+from django.contrib.gis.db import models
 
 # 0 indexing for popular times array
 WEEKDAYS = [
@@ -27,6 +29,7 @@ class Place(models.Model):
     types = ArrayField(models.CharField(max_length=60), null=True, blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    coordinates = models.PointField(srid=4326, null=True)
     rating = models.IntegerField(null=True)
     rating_n = models.IntegerField(null=True)
     # implicitly (using a 1-1 relationship) includes populartimes data (don't think we need the next line)

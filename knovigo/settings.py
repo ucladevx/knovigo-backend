@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'knovigo.places',
     'knovigo.ladph',
     'django_crontab'
@@ -88,7 +89,7 @@ WSGI_APPLICATION = 'knovigo.wsgi.application'
 # temporary credentials (todo: switch to env file)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': 'postgres',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
