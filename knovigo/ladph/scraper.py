@@ -372,7 +372,7 @@ def store_data(data):
                 print(d["place_name"])
 
 
-def load_heatmap_data(request):
+def load_heatmap_data(request=None):
     data, status = heatMapDataScraper()
 
     if status == 0:
