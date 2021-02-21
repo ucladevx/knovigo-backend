@@ -2,9 +2,18 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 
-
 # temporary
 from django.http import JsonResponse
+from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import model_to_dict
+
+from .models import Covid_HeatMap_Stats
+
+
+try:
+    import requests, json
+except:
+    raise ImportError
 
 
 def printCCSDB(db):
@@ -180,11 +189,195 @@ def heatMapDataScraper():
 api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
 
 
-def load_heatmap_data():
+def make_id_url(place_name):
+    fields = ["place_id"]
+    input_type = "textquery"
+    name = ""
+    for i in place_name:
+        if i == " ":
+            name += "%20"
+        else:
+            name += i
+
+    url = (
+        "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
+        + "input="
+        + name
+        + "&inputtype="
+        + input_type
+    )
+    url += "&fields="
+    for f in fields:
+        url += f + ","
+    # we can't have the fields argument end with a comma
+    if url.endswith(","):
+        url = url[:-1]
+    url += "&key="
+    url += api_key
+    return url
+
+
+def get_place_id(place_name):
+    url = make_id_url(place_name)
+    r = requests.get(url)
+    d = r.json()
+    try:
+        place_id = d["candidates"][0]["place_id"]
+    except:
+        place_id = None
+        print("place id not found")
+    return place_id
+
+
+def construct_request(place_name, fields):
+    """
+            Gets Place ID of a city from Google Places API
+            Sample GET Request URL:
+    https://maps.googleapis.com/maps/api/place/findplacefromtext/json?
+    input=Westwoord%20Los%20Angeles
+    &inputtype=textquery
+    &fields=place_id,geometry
+    &key=AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI
+            returns (place_id, latitude, longitude)
+    """
+    if isinstance(place_name, str) and len(place_name) != 0:
+        input_type = "textquery"
+        name = ""
+        for i in place_name:
+            if i == " ":
+                name += "%20"
+            else:
+                name += i
+
+        url = (
+            "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
+            + "input="
+            + name
+            + "&inputtype="
+            + input_type
+        )
+        url += "&fields="
+        for f in fields:
+            url += f + ","
+        # we can't have the fields argument end with a comma
+        if url.endswith(","):
+            url = url[:-1]
+        url += "&key="
+        url += api_key
+        return url
+    return None
+
+
+def get_id_and_coords(place_name):
+    """
+    Returns (place_id, latitude, longitude) of place_name
+    by querying google places API
+    """
+    if not place_name:
+        print("Bad Place Name")
+        return None
+
+    fields = ["place_id", "geometry"]
+    url = construct_request(place_name, fields)
+    if url == None:
+        print("Bad parameters to construct Google Places Request")
+        return None
+
+    r = requests.get(url)
+    d = r.json()
+    if not d or "status" not in d or d["status"] != "OK":
+        print("Bad Request to Google Places: " + str(place_name))
+        return None
+    try:
+        coords = d["candidates"][0]["geometry"]["location"]
+        lat, lng = coords["lat"], coords["lng"]
+        place_id = d["candidates"][0]["place_id"]
+    except LookupError:
+        print("Error With Response from Google Places")
+        return None
+    except Exception:
+        print("Unknown Error")
+        return None
+
+    d = dict()
+    d["id"] = place_id
+    d["lat"] = lat
+    d["lng"] = lng
+    return d
+
+
+def create_instance(lst):
+    """
+    Function creates dict() for a LADPH_CCDB instance from a list of data values
+    lst is a list of datas for a specific city:
+    [City Name, Cases, Crude Case Rate, Adjusted Case Rate, Unstable Adjusted Rate, 2018 PEPS Pop.]
+    """
+    if len(lst) != 6:
+        return None
+
+    city_name, cases, CCR, ACR, UAR, PEPS = lst
+
+    place_info = get_id_and_coords(city_name)
+    if not place_info:
+        return None
+
+    d = dict()
+
+    d["place_id"] = place_info["id"]
+    d["place_name"] = city_name
+    d["total_cases"] = cases
+    d["latitude"] = place_info["lat"]
+    d["longitude"] = place_info["lng"]
+    d["crude_case_rate"] = CCR
+    d["adjusted_case_rate"] = ACR
+    d["unstable_adjusted_rate"] = UAR
+    d["peps_population"] = PEPS
+    return d
+
+
+def store_data(data):
+    for row in data:
+        if not row:
+            continue
+
+        # creates a dictionary mapping a key to every value in the row
+        try:
+            d = create_instance(row)
+        except Exception as e:
+            print(e)
+            print("This Place Could Not Be Found: " + str(row[0]))
+            continue
+        if not d:
+            continue
+        print(d["place_name"])
+
+        # update the model if it exists
+        try:
+            obj = Covid_HeatMap_Stats.objects.get(pk=d["place_id"])
+            for (key, val) in d.items():
+                setattr(obj, key, val)
+            try:
+                obj.save()
+            except:
+                print("Following Place Storage Failed: ")
+                print(d["place_name"])
+
+        except ObjectDoesNotExist:
+            print(row)
+            try:
+                obj = Covid_HeatMap_Stats(**d)
+                obj.save()
+            except Exception:
+                print("Following Place Storage Failed: ")
+                print(d["place_name"])
+
+
+def load_heatmap_data(request):
     data, status = heatMapDataScraper()
 
     if status == 0:
         # load into django
+        store_data(data)
         try:
             pass
         except KeyError:
@@ -197,66 +390,47 @@ def load_heatmap_data():
         print("SOMETHINGS WRONG WITH SCRAPING FUNCTION")
     elif status == 3:
         print("SOMETHING UNKNOWN WITH SCRAPING")
+    return JsonResponse({"SUCCESS": True})
 
 
 def get_heatmap_data(request):
+    """
+    return JsonResponse(
+        [
+            {
+                "lat": 34.0635,
+                "lng": -118.4455,
+                "intensity": 715,
+            },
+            {
+                "lat": 34.0913,
+                "lng": -118.2936,
+                "intensity": 973,
+            },
+        ],
+        safe=False,
+    )
+    """
 
     # order is Los Angeles - Westwood, Los Angeles - East Hollywood,
     # intensity is Crude Case Rate
     if request.method == "GET":
-        return JsonResponse(
-            [
-                {
-                    "lat": 34.0635,
-                    "lng": -118.4455,
-                    "intensity": 715,
-                },
-                {
-                    "lat": 34.0913,
-                    "lng": -118.2936,
-                    "intensity": 973,
-                }
-            ], safe=False
-        )
+        data = Covid_HeatMap_Stats.objects.all()
+        responseData = []
+        for i in data:
+            djData = model_to_dict(i)
+            d = dict()
+            d["lat"] = djData["latitude"]
+            d["lng"] = djData["longitude"]
+            d["intensity"] = djData["crude_case_rate"]
+            responseData.append(d)
+        return JsonResponse(responseData, safe=False)
     else:
         return JsonResponse("ERROR: NOT A GET REQUEST")
 
 
 if __name__ == "__main__":
-    load_heatmap_data()
-
-
-'''
-# Test Code that just ran through every table in the url from top to bottom,
-# and used the appropriate scraper function
-def scrape_public_health_data():
-    url = (
-        "http://publichealth.lacounty.gov/media/coronavirus/locations.htm#case-summary"
-    )
-    r = requests.get(url)
-    # create object by parsing the raw html content of the url
-    soup = BeautifulSoup(r.content, "html.parser")
-    tables = soup.findAll("table")
-    s = 0
-    printCCSDB(scrapeCountyCaseSummary(tables[0]))
-    s += printDB(scrapeCityCommunityCaseSummary(tables[1]))
-    s += printDB(scrapeLACDPHT25(tables[2]))
-    s += printDB(scrapeLACDPHLACounty(tables[3]))
-    s += printDB(scrapeLACDPHCities(tables[4]))
-    """
-    SKIPPED TABLE 5 -
-    Residential Congregate and Acute Care Settings Meeting the
-    Criteria of (1) At Least One Laboratory-confirmed Resident
-    or (2) Two or More Laboratory-confirmed Staff in Long-Term Care
-    Facilities that are not Skilled Nursing Facilities, or (3) Three
-    or More Laboratory-Confirmed Staff in Shared Housing
-
-    NO NEED FOR INFO
-    """
-
-    s += printDB(scrapeNonResCases(tables[6]))
-    s += printDB(scrapeLACHomelessSettingCovidCases(tables[7]))
-    s += printDB(scrapeLACEducationalSettingCovidCases(tables[8]))
-    # s+= printDB(scrapeComplianceCitations(tables[9]))
-    print(s)
-'''
+    data, status = heatMapDataScraper()
+    # print(status)
+    # [print(i) for i in data]
+    # print(get_id_and_coords("Westwood"))
