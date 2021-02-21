@@ -1,6 +1,6 @@
 #!/bin/sh
 
-./setup.sh
+#./setup.sh
 
 service cron start
 mkdir log 2> /dev/null

@@ -273,6 +273,10 @@ def get_id_and_coords(place_name):
     Returns (place_id, latitude, longitude) of place_name
     by querying google places API
     """
+    if not place_name:
+        print("Bad Place Name")
+        return None
+
     fields = ["place_id", "geometry"]
     url = construct_request(place_name, fields)
     if url == None:
@@ -282,7 +286,7 @@ def get_id_and_coords(place_name):
     r = requests.get(url)
     d = r.json()
     if not d or "status" not in d or d["status"] != "OK":
-        print("Bad Request to Google Places")
+        print("Bad Request to Google Places: " + str(place_name))
         return None
     try:
         coords = d["candidates"][0]["geometry"]["location"]
@@ -332,33 +336,40 @@ def create_instance(lst):
 
 
 def store_data(data):
-    print("Number of Rows: " + str(len(data)))
     for row in data:
         if not row:
-            print("skipped")
             continue
 
         # creates a dictionary mapping a key to every value in the row
         try:
             d = create_instance(row)
-            print(d["place_name"])
         except Exception as e:
             print(e)
+            print("This Place Could Not Be Found: " + str(row[0]))
             continue
         if not d:
-            print("skipped")
             continue
+        print(d["place_name"])
 
         # update the model if it exists
         try:
             obj = Covid_HeatMap_Stats.objects.get(pk=d["place_id"])
             for (key, val) in d.items():
                 setattr(obj, key, val)
-            obj.save()
+            try:
+                obj.save()
+            except:
+                print("Following Place Storage Failed: ")
+                print(d["place_name"])
 
         except ObjectDoesNotExist:
-            obj = Covid_HeatMap_Stats(**d)
-            obj.save()
+            print(row)
+            try:
+                obj = Covid_HeatMap_Stats(**d)
+                obj.save()
+            except Exception:
+                print("Following Place Storage Failed: ")
+                print(d["place_name"])
 
 
 def load_heatmap_data(request):
