@@ -19,5 +19,6 @@ urlpatterns = [
     path('place/<int:pk>/', views.place_detail),
     path('get_user_report', views.get_user_report_data),
     path('get_place_data', views.get_place_data_updates),
+    path('save_app_report', views.save_app_report),
     path('test', scraper.test_get),
 ]
