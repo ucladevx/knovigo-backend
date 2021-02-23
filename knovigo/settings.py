@@ -31,16 +31,17 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "rest_framework",
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "knovigo.places",
-    "knovigo.ladph",
-    "django_crontab",
+    'rest_framework',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'knovigo.places',
+    'knovigo.ladph',
+    'django_crontab'
 ]
 
 # use https://crontab.guru/ for cronjob syntax
@@ -98,13 +99,13 @@ WSGI_APPLICATION = "knovigo.wsgi.application"
 
 # temporary credentials (todo: switch to env file)
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "postgres",
-        "PORT": 5432,
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'postgres',
+        'PORT': 5432,
     }
 }
 
