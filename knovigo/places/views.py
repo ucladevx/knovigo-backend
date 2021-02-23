@@ -1,13 +1,14 @@
-from django.shortcuts import render # need?
 from django.http import JsonResponse, HttpResponse
 
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import GEOSGeometry,Point
+from django.views.decorators.csrf import csrf_exempt
 
 # manually trigger scraper functions for testing (can probably delete later)
+import json
 from .report_scraper import scrape_user_report_data
 from .scraper import update_place_data
-
+from .report_data_saver import save_data_from_report
 from rest_framework import viewsets
 
 from .serializers import PlaceSerializer
@@ -35,7 +36,6 @@ def place_detail(request, id):
 	if request.method == 'GET':
 		serializer = PlaceSerializer(place)
 		return JsonResponse(serializer.data)
-
 
 # Added latitude and longitude parameters. TODO: add distance calculation
 def place_location_list(request, latitude, longitude):
@@ -73,5 +73,14 @@ def get_place_data_updates(request):
 	return JsonResponse({'success': True})
 
 def get_user_report_data(request):
-	count = scrape_user_report_data()
-	return JsonResponse({'count': count})
+    count = scrape_user_report_data()
+    return JsonResponse({'count': count})
+
+
+@csrf_exempt
+def save_app_report(request):
+    ret_value, ret_string = save_data_from_report(request)
+    if ret_value == 1:
+        print("Error", ret_string)
+        return JsonResponse({'success': False, 'err_msg': ret_string})
+    return JsonResponse({'success': True})

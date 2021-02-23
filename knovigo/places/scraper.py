@@ -9,19 +9,18 @@ from .models import Place, PopularTimes, BusinessHours
 # temporary
 from django.http import JsonResponse
 
-WESTWOOD_LOCATIONS = [
-    "ChIJM2_CO4G8woARCvO-wn-MObo",  # Westwood Target
-    "ChIJDepxE4G8woAR4BETlQXlSt8",  # Westwood Trader Joe's
-    "ChIJU9RXX4G8woARM6tDKbo-o40",  # Westwood CVS
-    "ChIJf5fVvoO8woARChfRh6MOi8o",  # Westwood Whole Foods
-    "ChIJz3nnNoG8woARM2mO30LUT-Q",  # Westwood Ralph's
-    "ChIJ9bElwYO8woARyFBerBC6aRs",  # Westwood Barney's Beanery
-    "EidKYW5zcyBTdGVwcywgTG9zIEFuZ2VsZXMsIENBIDkwMDk1LCBVU0EiLiosChQKEgmP7FgEibzCgBGSTtcJJ1JtZhIUChIJE9on3F3HwoAR9AhGJW_fL-I",
+WESTWOOD_LOCATIONS = {
+    "Target": "ChIJM2_CO4G8woARCvO-wn-MObo",  # Westwood Target
+    "Trader Joe's": "ChIJDepxE4G8woAR4BETlQXlSt8",  # Westwood Trader Joe's
+    "CVS": "ChIJU9RXX4G8woARM6tDKbo-o40",  # Westwood CVS
+    "Whole Foods": "ChIJf5fVvoO8woARChfRh6MOi8o",  # Westwood Whole Foods
+    "Ralph's": "ChIJz3nnNoG8woARM2mO30LUT-Q",  # Westwood Ralph's
+    "Barney's Beanery": "ChIJ9bElwYO8woARyFBerBC6aRs",  # Westwood Barney's Beanery
+    "Tongva Steps area": "EidKYW5zcyBTdGVwcywgTG9zIEFuZ2VsZXMsIENBIDkwMDk1LCBVU0EiLiosChQKEgmP7FgEibzCgBGSTtcJJ1JtZhIUChIJE9on3F3HwoAR9AhGJW_fL-I",
     # Tongva steps
-    "ChIJD28uC4S8woARUk1Z5qNqmjk",  # Westwood Diddy Riese
-    "ChIJSXU3ioO8woARK-IVICYTrVI",  # BJ's Restaurant and Brewery
-]
-
+    "Diddy Riese": "ChIJD28uC4S8woARUk1Z5qNqmjk",  # Westwood Diddy Riese
+    "BJ's Restaurant & Brewhouse": "ChIJSXU3ioO8woARK-IVICYTrVI",  # BJ's Restaurant and Brewery
+}
 api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
 
 
@@ -161,7 +160,7 @@ def update_place_model(place_id):
 
 
 def update_place_data():
-    for location in WESTWOOD_LOCATIONS:
+    for location in WESTWOOD_LOCATIONS.values():
         update_place_model(location)
     return len(WESTWOOD_LOCATIONS)
     # update_place_model(WESTWOOD_LOCATIONS[8])
