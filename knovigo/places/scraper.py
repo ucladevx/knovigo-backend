@@ -69,8 +69,6 @@ def update_place_model(place_id):
     name = d['name']
     address = d['address']
     types = d['types']
-    latitude = d['coordinates']['lat']
-    longitude = d['coordinates']['lng']
     coordinates = Point(d['coordinates']['lat'], d['coordinates']['lng'])
     rating = d['rating']
     rating_n = d['rating_n']
@@ -90,8 +88,6 @@ def update_place_model(place_id):
         place_model = Place.objects.get(pk=place_id)
         place_model.name = name
         place_model.address = address
-        place_model.latitude = latitude
-        place_model.longitude = longitude
         place_model.coordinates = coordinates
         place_model.rating = rating
         place_model.rating_n = rating_n
@@ -100,8 +96,7 @@ def update_place_model(place_id):
         place_model.phone_number = phone_number
 
     except ObjectDoesNotExist:
-        place_model = Place(place_id=place_id, name=name, address=address, types=types, latitude=latitude,
-                            longitude=longitude, coordinates=coordinates, rating=rating, rating_n=rating_n, agg_density=0,
+        place_model = Place(place_id=place_id, name=name, address=address, types=types, coordinates=coordinates, rating=rating, rating_n=rating_n, agg_density=0,
                             agg_density_n=0, agg_social=0, agg_social_n=0, agg_mask=0, agg_mask_n=0,
                             covid_updates=None, confirmed_staff_infected=-1)
     place_model.save()

@@ -27,8 +27,6 @@ class Place(models.Model):
     name = models.CharField(max_length=60)
     address = models.TextField(null=True)
     types = ArrayField(models.CharField(max_length=60), null=True, blank=True)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
     coordinates = models.PointField(srid=4326, null=True)
     rating = models.IntegerField(null=True)
     rating_n = models.IntegerField(null=True)
