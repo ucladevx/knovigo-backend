@@ -67,10 +67,17 @@ class BusinessHoursSerializer(serializers.ModelSerializer):
 class PlaceSerializer(DynamicFieldsModelSerializer):
     businessHours = serializers.SerializerMethodField()
     popularTimes = serializers.SerializerMethodField()
+    distance = serializers.SerializerMethodField()
 
     class Meta:
         model = Place
         fields = ('__all__')
+
+    def get_distance(self, obj):
+        try:
+            return obj.distance.mi
+        except:
+            return None
 
     def get_businessHours(self, obj):
         "obj is a Place instance. Returns list of dicts"""
