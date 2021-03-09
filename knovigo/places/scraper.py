@@ -3,9 +3,8 @@ import requests
 from collections import defaultdict
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.gis.geos import Point
-
 from .models import Place, PopularTimes, BusinessHours
-
+from ..settings import API_KEY
 # temporary
 from django.http import JsonResponse
 
@@ -21,9 +20,8 @@ WESTWOOD_LOCATIONS = {
     "Diddy Riese": "ChIJD28uC4S8woARUk1Z5qNqmjk",  # Westwood Diddy Riese
     "BJ's Restaurant & Brewhouse": "ChIJSXU3ioO8woARK-IVICYTrVI",  # BJ's Restaurant and Brewery
 }
-api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
 
-
+api_key = API_KEY
 def get_place_data(place_id):
     # modify the fields we retrieve
     # do we rely more on the populartimes call to reduce redundant
