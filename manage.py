@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+from dotenv import load_dotenv
+from pathlib import Path
+env_path = Path('.') / 'knovigo-dev.env'
+load_dotenv(dotenv_path=env_path)
+
 """Django's command-line utility for administrative tasks."""
 import os
 import sys

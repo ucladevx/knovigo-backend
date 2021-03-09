@@ -8,7 +8,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 
 from .models import Covid_HeatMap_Stats
-
+# get API key
+from ..settings import API_KEY
 
 try:
     import requests, json
@@ -186,7 +187,7 @@ def heatMapDataScraper():
     return (data, 0)
 
 
-api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
+api_key = API_KEY
 
 
 def make_id_url(place_name):
@@ -237,7 +238,7 @@ def construct_request(place_name, fields):
     input=Westwoord%20Los%20Angeles
     &inputtype=textquery
     &fields=place_id,geometry
-    &key=AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI
+    &key=hidden
             returns (place_id, latitude, longitude)
     """
     if isinstance(place_name, str) and len(place_name) != 0:

@@ -1,11 +1,11 @@
 from django.db import models
-
+from ..settings import API_KEY
 try:
     import requests, json
 except:
     raise ImportError
 
-api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
+api_key = API_KEY
 
 
 class Covid_HeatMap_Stats(models.Model):
