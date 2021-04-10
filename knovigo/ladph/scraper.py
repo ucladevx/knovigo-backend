@@ -8,7 +8,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 
 from .models import Covid_HeatMap_Stats
-<<<<<<< HEAD
 
 import requests
 import json
@@ -19,10 +18,6 @@ import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 
-=======
-# get API key
-from ..settings import API_KEY
->>>>>>> d45e690b8f9a67df08f44ad6d9c51ff3c5db8d83
 
 firebase_key = "/Users/akshay/projects/helloworld/knovigo/knovigo.json"
 
@@ -204,7 +199,7 @@ def heatMapDataScraper():
     return (data, 0)
 
 
-api_key = API_KEY
+api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
 
 
 def make_id_url(place_name):
@@ -255,7 +250,7 @@ def construct_request(place_name, fields):
     input=Westwoord%20Los%20Angeles
     &inputtype=textquery
     &fields=place_id,geometry
-    &key=hidden
+    &key=AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI
             returns (place_id, latitude, longitude)
     """
     if isinstance(place_name, str) and len(place_name) != 0:
@@ -286,7 +281,7 @@ def construct_request(place_name, fields):
     return None
 
 
-def get_id_and_coords(place_name):
+def get_id_and_coords(place_name, city_data):
     """
     Returns (place_id, latitude, longitude) of place_name
     by querying google places API
@@ -295,6 +290,17 @@ def get_id_and_coords(place_name):
         print("Bad Place Name")
         return None
 
+    # we replace all / with _ to store in firebase's city_data
+    formatted_place_name = place_name.replace("/", "_")
+    # if we do have the place in our firebase db, get the data and return it
+    if formatted_place_name in city_data:
+        d = dict()
+        d["id"] = city_data[formatted_place_name]["place_id"]
+        d["lat"] = city_data[formatted_place_name]["latitude"]
+        d["lng"] = city_data[formatted_place_name]["longitude"]
+        return d
+
+    # if we don't have that data in firebase, check the places API
     fields = ["place_id", "geometry"]
     url = construct_request(place_name, fields)
     if url == None:
@@ -324,7 +330,7 @@ def get_id_and_coords(place_name):
     return d
 
 
-def create_instance(lst):
+def create_instance(lst, city_data):
     """
     Function creates dict() for a LADPH_CCDB instance from a list of data values
     lst is a list of datas for a specific city:
@@ -335,7 +341,7 @@ def create_instance(lst):
 
     city_name, cases, CCR, ACR, UAR, PEPS = lst
 
-    place_info = get_id_and_coords(city_name)
+    place_info = get_id_and_coords(city_name, city_data)
     if not place_info:
         return None
 
@@ -353,7 +359,7 @@ def create_instance(lst):
     return d
 
 
-def store_data(data):
+def store_data(data, city_data):
 
     for row in data:
         if not row:
@@ -361,7 +367,7 @@ def store_data(data):
 
         # creates a dictionary mapping a key to every value in the row
         try:
-            d = create_instance(row)
+            d = create_instance(row, city_data)
         except Exception as e:
             print(e)
             print("This Place Could Not Be Found: " + str(row[0]))
@@ -391,23 +397,30 @@ def store_data(data):
                 print(d["place_name"])
 
 
+firebase_key = "/Users/akshay/projects/helloworld/knovigo/knovigo.json"
+
+
 def get_city_collection():
-    db = firestore.client()
     if not firebase_admin._apps:
         cred = credentials.Certificate(firebase_key)
-    firebase_admin.initialize_app(cred)
+        firebase_admin.initialize_app(cred)
+
+    db = firestore.client()
 
     collection = db.collection(u'cities3').stream()
+    city_data = dict()
     for doc in collection:
-        print(f'{doc.id} => {doc.to_dict()}')
+        city_data[doc.id] = doc.to_dict()
+
+    return city_data
 
 
 def load_heatmap_data(request=None):
     data, status = heatMapDataScraper()
-
+    city_data = get_city_collection
     if status == 0:
         # load into django
-        store_data(data)
+        store_data(data, city_data)
         try:
             pass
         except KeyError:

@@ -10,3 +10,4 @@ django-crontab>=0.7.1
 geopy
 beautifulsoup4>=4.9.3
 python-dotenv>=0.15.0
+firebase-admin==4.5.3
