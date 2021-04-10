@@ -19,7 +19,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 
 
-firebase_key = "/Users/akshay/projects/helloworld/knovigo/knovigo.json"
+firebase_key = "./knovigo.json"
 
 
 def printCCSDB(db):
@@ -199,7 +199,8 @@ def heatMapDataScraper():
     return (data, 0)
 
 
-api_key = "AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI"
+api_key = ""
+# AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI
 
 
 def make_id_url(place_name):
@@ -360,7 +361,6 @@ def create_instance(lst, city_data):
 
 
 def store_data(data, city_data):
-
     for row in data:
         if not row:
             continue
@@ -397,9 +397,6 @@ def store_data(data, city_data):
                 print(d["place_name"])
 
 
-firebase_key = "/Users/akshay/projects/helloworld/knovigo/knovigo.json"
-
-
 def get_city_collection():
     if not firebase_admin._apps:
         cred = credentials.Certificate(firebase_key)
@@ -417,7 +414,7 @@ def get_city_collection():
 
 def load_heatmap_data(request=None):
     data, status = heatMapDataScraper()
-    city_data = get_city_collection
+    city_data = get_city_collection()
     if status == 0:
         # load into django
         store_data(data, city_data)
