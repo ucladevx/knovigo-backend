@@ -9,11 +9,17 @@ from django.forms.models import model_to_dict
 
 from .models import Covid_HeatMap_Stats
 
+import requests
+import json
 
-try:
-    import requests, json
-except:
-    raise ImportError
+
+import os
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+
+
+firebase_key = "/Users/akshay/projects/helloworld/knovigo/knovigo.json"
 
 
 def printCCSDB(db):
@@ -87,7 +93,8 @@ def scrapeCityCommunityCaseSummary(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 2 -
@@ -97,7 +104,8 @@ def scrapeLACDPHT25(table, headerKey="td"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 3 - County of LA
@@ -107,7 +115,8 @@ def scrapeLACDPHLACounty(table, headerKey="td"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 4 - Cities
@@ -117,7 +126,8 @@ def scrapeLACDPHCities(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 6 - NonRes Covid Counts
@@ -127,7 +137,8 @@ def scrapeNonResCases(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 7 - Homeless Service Settings Covid Cases
@@ -137,14 +148,16 @@ def scrapeLACHomelessSettingCovidCases(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 def scrapeLACEducationalSettingCovidCases(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # NOT IMPLEMENTED BECAUSE NOT NEEDED
@@ -336,6 +349,7 @@ def create_instance(lst):
 
 
 def store_data(data):
+
     for row in data:
         if not row:
             continue
@@ -370,6 +384,17 @@ def store_data(data):
             except Exception:
                 print("Following Place Storage Failed: ")
                 print(d["place_name"])
+
+
+def get_city_collection():
+    db = firestore.client()
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(firebase_key)
+    firebase_admin.initialize_app(cred)
+
+    collection = db.collection(u'cities3').stream()
+    for doc in collection:
+        print(f'{doc.id} => {doc.to_dict()}')
 
 
 def load_heatmap_data(request=None):
