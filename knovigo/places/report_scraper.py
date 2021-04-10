@@ -22,7 +22,7 @@ def scrape_user_report_data():
     reader = csv.reader(file, delimiter=',')
     # skip header row
     next(reader)
-    percents_dict = {'0 - 25%': 0, '25 - 50%': 1, '50 - 75%': 2, '75 - 100%': 3}
+    percents_dict = {'0 - 25%': 12, '25 - 50%': 37, '50 - 75%': 62, '75 - 100%': 87}
 
     count = 0
     for row in reader:
