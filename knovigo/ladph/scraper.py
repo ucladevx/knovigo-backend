@@ -19,7 +19,7 @@ from firebase_admin import credentials
 from firebase_admin import firestore
 
 
-firebase_key = "./knovigo.json"
+firebase_key = "./knovigofirebase.json"
 
 
 def printCCSDB(db):
@@ -199,9 +199,6 @@ def heatMapDataScraper():
     return (data, 0)
 
 
-api_key = ""
-# AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI
-
 
 def make_id_url(place_name):
     fields = ["place_id"]
@@ -251,7 +248,7 @@ def construct_request(place_name, fields):
     input=Westwoord%20Los%20Angeles
     &inputtype=textquery
     &fields=place_id,geometry
-    &key=AIzaSyDdpsQ_OSZrVjRIeGoXcCXHbuG2pk1rlKI
+    &key=
             returns (place_id, latitude, longitude)
     """
     if isinstance(place_name, str) and len(place_name) != 0:
@@ -306,34 +303,34 @@ def get_id_and_coords(place_name, city_data):
 
     #code to Work using Places API - no longer needed and will not run
     
-    # if we don't have that data in firebase, check the places API
-    fields = ["place_id", "geometry"]
-    url = construct_request(place_name, fields)
-    if url == None:
-        print("Bad parameters to construct Google Places Request")
-        return None
+    # # if we don't have that data in firebase, check the places API
+    # fields = ["place_id", "geometry"]
+    # url = construct_request(place_name, fields)
+    # if url == None:
+    #     print("Bad parameters to construct Google Places Request")
+    #     return None
 
-    r = requests.get(url)
-    d = r.json()
-    if not d or "status" not in d or d["status"] != "OK":
-        print("Bad Request to Google Places: " + str(place_name))
-        return None
-    try:
-        coords = d["candidates"][0]["geometry"]["location"]
-        lat, lng = coords["lat"], coords["lng"]
-        place_id = d["candidates"][0]["place_id"]
-    except LookupError:
-        print("Error With Response from Google Places")
-        return None
-    except Exception:
-        print("Unknown Error")
-        return None
+    # r = requests.get(url)
+    # d = r.json()
+    # if not d or "status" not in d or d["status"] != "OK":
+    #     print("Bad Request to Google Places: " + str(place_name))
+    #     return None
+    # try:
+    #     coords = d["candidates"][0]["geometry"]["location"]
+    #     lat, lng = coords["lat"], coords["lng"]
+    #     place_id = d["candidates"][0]["place_id"]
+    # except LookupError:
+    #     print("Error With Response from Google Places")
+    #     return None
+    # except Exception:
+    #     print("Unknown Error")
+    #     return None
 
-    d = dict()
-    d["id"] = place_id
-    d["lat"] = lat
-    d["lng"] = lng
-    return d
+    # d = dict()
+    # d["id"] = place_id
+    # d["lat"] = lat
+    # d["lng"] = lng
+    # return d
 
 
 def create_instance(lst, city_data):
