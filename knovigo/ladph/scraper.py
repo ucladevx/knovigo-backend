@@ -300,7 +300,12 @@ def get_id_and_coords(place_name, city_data):
         d["lat"] = city_data[formatted_place_name]["latitude"]
         d["lng"] = city_data[formatted_place_name]["longitude"]
         return d
+    else:
+        print (f'{formatted_place_name} not in Firebase')
+        return None
 
+    #code to Work using Places API - no longer needed and will not run
+    
     # if we don't have that data in firebase, check the places API
     fields = ["place_id", "geometry"]
     url = construct_request(place_name, fields)
@@ -464,6 +469,21 @@ def get_heatmap_data(request):
             d["lng"] = djData["longitude"]
             d["intensity"] = djData["crude_case_rate"]
             responseData.append(d)
+        return JsonResponse(responseData, safe=False)
+    else:
+        return JsonResponse("ERROR: NOT A GET REQUEST")
+
+
+def show_db(request):
+    '''
+    Just a method for viewing the contents of the database
+    '''
+    if request.method == "GET":
+        data = Covid_HeatMap_Stats.objects.all()
+        responseData = []
+        for i in data:
+            djData = model_to_dict(i)
+            responseData.append(djData)
         return JsonResponse(responseData, safe=False)
     else:
         return JsonResponse("ERROR: NOT A GET REQUEST")
