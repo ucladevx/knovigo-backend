@@ -19,6 +19,17 @@ from .serializers import PopularTimesSerializer
 from .models import PopularTimes
 from geopy.distance import geodesic
 from django.db.models import F
+import datetime
+
+day_map = {
+	0: "monday",
+	1: "tuesday",
+	2: "wednesday",
+	3: "thursday",
+	4: "friday",
+	5: "saturday",
+	6: "sunday"
+}
 
 class PopularTimesViewSet(viewsets.ModelViewSet):
 	queryset = PopularTimes.objects.all()
@@ -55,7 +66,8 @@ def place_filter_list(request):
 	"""
 	if request.method == 'GET':
 		fields = ("place_id", "address", "name", "rating", "rating_n", "price_level", "types", "latitude", "longitude", "agg_density", "agg_social", "agg_mask", "businessHours", "popularTimes")
-		places = Place.objects.all().order_by("agg_density") # refine order by filter with more data
+		# day = datetime.datetime.today().weekday()
+		# places = Place.objects.all().order_by("popularTimes." + ) # refine order by filter with more data
 		serializer = PlaceSerializer(places, many=True, context={'request': request}, fields = fields)
 		return JsonResponse(serializer.data, safe=False)
 
@@ -66,6 +78,17 @@ def place_list(request):
 	if request.method == 'GET':
 		places = Place.objects.all()
 		serializer = PlaceSerializer(places, many=True, context={'request': request})
+		return JsonResponse(serializer.data, safe=False)
+
+def place_busiest(request):
+	if request.method == 'GET':
+		fields = ("place_id", "address", "name", "rating", "rating_n", "price_level", "types", "latitude", "longitude", "agg_density", "agg_social", "agg_mask", "businessHours", "popularTimes")
+		day = day_map[datetime.datetime.today().weekday()]
+		time = datetime.datetime.today().hour # reformat time?
+		# places = Place.objects.all().order_by("popularTimes." + ) # refine order by filter with more data
+		day_str = "popularTimes." + day
+		places = Place.objects.all().order_by(day_str) #+ "__" + str(time))
+		serializer = PlaceSerializer(places, many=True, context={'request': request}, fields = fields)
 		return JsonResponse(serializer.data, safe=False)
 	  
 def get_place_data_updates(request):
