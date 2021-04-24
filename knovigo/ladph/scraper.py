@@ -199,84 +199,83 @@ def heatMapDataScraper():
     return (data, 0)
 
 
+# def make_id_url(place_name):
+#     fields = ["place_id"]
+#     input_type = "textquery"
+#     name = ""
+#     for i in place_name:
+#         if i == " ":
+#             name += "%20"
+#         else:
+#             name += i
 
-def make_id_url(place_name):
-    fields = ["place_id"]
-    input_type = "textquery"
-    name = ""
-    for i in place_name:
-        if i == " ":
-            name += "%20"
-        else:
-            name += i
-
-    url = (
-        "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
-        + "input="
-        + name
-        + "&inputtype="
-        + input_type
-    )
-    url += "&fields="
-    for f in fields:
-        url += f + ","
-    # we can't have the fields argument end with a comma
-    if url.endswith(","):
-        url = url[:-1]
-    url += "&key="
-    url += api_key
-    return url
-
-
-def get_place_id(place_name):
-    url = make_id_url(place_name)
-    r = requests.get(url)
-    d = r.json()
-    try:
-        place_id = d["candidates"][0]["place_id"]
-    except:
-        place_id = None
-        print("place id not found")
-    return place_id
+#     url = (
+#         "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
+#         + "input="
+#         + name
+#         + "&inputtype="
+#         + input_type
+#     )
+#     url += "&fields="
+#     for f in fields:
+#         url += f + ","
+#     # we can't have the fields argument end with a comma
+#     if url.endswith(","):
+#         url = url[:-1]
+#     url += "&key="
+#     url += api_key
+#     return url
 
 
-def construct_request(place_name, fields):
-    """
-            Gets Place ID of a city from Google Places API
-            Sample GET Request URL:
-    https://maps.googleapis.com/maps/api/place/findplacefromtext/json?
-    input=Westwoord%20Los%20Angeles
-    &inputtype=textquery
-    &fields=place_id,geometry
-    &key=
-            returns (place_id, latitude, longitude)
-    """
-    if isinstance(place_name, str) and len(place_name) != 0:
-        input_type = "textquery"
-        name = ""
-        for i in place_name:
-            if i == " ":
-                name += "%20"
-            else:
-                name += i
+# def get_place_id(place_name):
+#     url = make_id_url(place_name)
+#     r = requests.get(url)
+#     d = r.json()
+#     try:
+#         place_id = d["candidates"][0]["place_id"]
+#     except:
+#         place_id = None
+#         print("place id not found")
+#     return place_id
 
-        url = (
-            "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
-            + "input="
-            + name
-            + "&inputtype="
-            + input_type
-        )
-        url += "&fields="
-        for f in fields:
-            url += f + ","
-        # we can't have the fields argument end with a comma
-        if url.endswith(","):
-            url = url[:-1]
-        url += "&key="
-        url += api_key
-        return url
-    return None
+
+# def construct_request(place_name, fields):
+#     """
+#             Gets Place ID of a city from Google Places API
+#             Sample GET Request URL:
+#     https://maps.googleapis.com/maps/api/place/findplacefromtext/json?
+#     input=Westwoord%20Los%20Angeles
+#     &inputtype=textquery
+#     &fields=place_id,geometry
+#     &key=
+#             returns (place_id, latitude, longitude)
+#     """
+#     if isinstance(place_name, str) and len(place_name) != 0:
+#         input_type = "textquery"
+#         name = ""
+#         for i in place_name:
+#             if i == " ":
+#                 name += "%20"
+#             else:
+#                 name += i
+
+#         url = (
+#             "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?"
+#             + "input="
+#             + name
+#             + "&inputtype="
+#             + input_type
+#         )
+#         url += "&fields="
+#         for f in fields:
+#             url += f + ","
+#         # we can't have the fields argument end with a comma
+#         if url.endswith(","):
+#             url = url[:-1]
+#         url += "&key="
+#         url += api_key
+#         return url
+#     return None
 
 
 def get_id_and_coords(place_name, city_data):
@@ -298,11 +297,11 @@ def get_id_and_coords(place_name, city_data):
         d["lng"] = city_data[formatted_place_name]["longitude"]
         return d
     else:
-        print (f'{formatted_place_name} not in Firebase')
+        print(f'{formatted_place_name} not in Firebase')
         return None
 
-    #code to Work using Places API - no longer needed and will not run
-    
+    # code to Work using Places API - no longer needed and will not run
+
     # # if we don't have that data in firebase, check the places API
     # fields = ["place_id", "geometry"]
     # url = construct_request(place_name, fields)
@@ -339,12 +338,15 @@ def create_instance(lst, city_data):
     lst is a list of datas for a specific city:
     [City Name, Cases, Crude Case Rate, Adjusted Case Rate, Unstable Adjusted Rate, 2018 PEPS Pop.]
     """
+    print(lst)
     if len(lst) != 6:
+        print("here2")
         return None
 
     city_name, cases, CCR, ACR, UAR, PEPS = lst
 
     place_info = get_id_and_coords(city_name, city_data)
+    print("place_info", place_info)
     if not place_info:
         return None
 
@@ -363,6 +365,7 @@ def create_instance(lst, city_data):
 
 
 def store_data(data, city_data):
+    print("Storing data")
     for row in data:
         if not row:
             continue
@@ -375,7 +378,10 @@ def store_data(data, city_data):
             print("This Place Could Not Be Found: " + str(row[0]))
             continue
         if not d:
+            print("Something")
             continue
+
+        print("Place:")
         print(d["place_name"])
 
         # update the model if it exists
