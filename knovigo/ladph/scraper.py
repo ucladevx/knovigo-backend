@@ -8,13 +8,18 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.forms.models import model_to_dict
 
 from .models import Covid_HeatMap_Stats
-# get API key
-from ..settings import API_KEY
 
-try:
-    import requests, json
-except:
-    raise ImportError
+import requests
+import json
+
+
+import os
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+
+
+firebase_key = "./knovigofirebase.json"
 
 
 def printCCSDB(db):
@@ -88,7 +93,8 @@ def scrapeCityCommunityCaseSummary(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 2 -
@@ -98,7 +104,8 @@ def scrapeLACDPHT25(table, headerKey="td"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 3 - County of LA
@@ -108,7 +115,8 @@ def scrapeLACDPHLACounty(table, headerKey="td"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 4 - Cities
@@ -118,7 +126,8 @@ def scrapeLACDPHCities(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 6 - NonRes Covid Counts
@@ -128,7 +137,8 @@ def scrapeNonResCases(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # table 7 - Homeless Service Settings Covid Cases
@@ -138,14 +148,16 @@ def scrapeLACHomelessSettingCovidCases(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 def scrapeLACEducationalSettingCovidCases(table, headerKey="th"):
     try:
         return scrapeTable(table, headerKey)
     except Exception:
-        raise KeyError("Error with trying to scrape the table itself from the website.")
+        raise KeyError(
+            "Error with trying to scrape the table itself from the website.")
 
 
 # NOT IMPLEMENTED BECAUSE NOT NEEDED
@@ -186,8 +198,6 @@ def heatMapDataScraper():
     # it worked!
     return (data, 0)
 
-
-api_key = API_KEY
 
 
 def make_id_url(place_name):
@@ -238,7 +248,7 @@ def construct_request(place_name, fields):
     input=Westwoord%20Los%20Angeles
     &inputtype=textquery
     &fields=place_id,geometry
-    &key=hidden
+    &key=
             returns (place_id, latitude, longitude)
     """
     if isinstance(place_name, str) and len(place_name) != 0:
@@ -269,7 +279,7 @@ def construct_request(place_name, fields):
     return None
 
 
-def get_id_and_coords(place_name):
+def get_id_and_coords(place_name, city_data):
     """
     Returns (place_id, latitude, longitude) of place_name
     by querying google places API
@@ -278,36 +288,52 @@ def get_id_and_coords(place_name):
         print("Bad Place Name")
         return None
 
-    fields = ["place_id", "geometry"]
-    url = construct_request(place_name, fields)
-    if url == None:
-        print("Bad parameters to construct Google Places Request")
+    # we replace all / with _ to store in firebase's city_data
+    formatted_place_name = place_name.replace("/", "_")
+    # if we do have the place in our firebase db, get the data and return it
+    if formatted_place_name in city_data:
+        d = dict()
+        d["id"] = city_data[formatted_place_name]["place_id"]
+        d["lat"] = city_data[formatted_place_name]["latitude"]
+        d["lng"] = city_data[formatted_place_name]["longitude"]
+        return d
+    else:
+        print (f'{formatted_place_name} not in Firebase')
         return None
 
-    r = requests.get(url)
-    d = r.json()
-    if not d or "status" not in d or d["status"] != "OK":
-        print("Bad Request to Google Places: " + str(place_name))
-        return None
-    try:
-        coords = d["candidates"][0]["geometry"]["location"]
-        lat, lng = coords["lat"], coords["lng"]
-        place_id = d["candidates"][0]["place_id"]
-    except LookupError:
-        print("Error With Response from Google Places")
-        return None
-    except Exception:
-        print("Unknown Error")
-        return None
+    #code to Work using Places API - no longer needed and will not run
+    
+    # # if we don't have that data in firebase, check the places API
+    # fields = ["place_id", "geometry"]
+    # url = construct_request(place_name, fields)
+    # if url == None:
+    #     print("Bad parameters to construct Google Places Request")
+    #     return None
 
-    d = dict()
-    d["id"] = place_id
-    d["lat"] = lat
-    d["lng"] = lng
-    return d
+    # r = requests.get(url)
+    # d = r.json()
+    # if not d or "status" not in d or d["status"] != "OK":
+    #     print("Bad Request to Google Places: " + str(place_name))
+    #     return None
+    # try:
+    #     coords = d["candidates"][0]["geometry"]["location"]
+    #     lat, lng = coords["lat"], coords["lng"]
+    #     place_id = d["candidates"][0]["place_id"]
+    # except LookupError:
+    #     print("Error With Response from Google Places")
+    #     return None
+    # except Exception:
+    #     print("Unknown Error")
+    #     return None
+
+    # d = dict()
+    # d["id"] = place_id
+    # d["lat"] = lat
+    # d["lng"] = lng
+    # return d
 
 
-def create_instance(lst):
+def create_instance(lst, city_data):
     """
     Function creates dict() for a LADPH_CCDB instance from a list of data values
     lst is a list of datas for a specific city:
@@ -318,7 +344,7 @@ def create_instance(lst):
 
     city_name, cases, CCR, ACR, UAR, PEPS = lst
 
-    place_info = get_id_and_coords(city_name)
+    place_info = get_id_and_coords(city_name, city_data)
     if not place_info:
         return None
 
@@ -336,14 +362,14 @@ def create_instance(lst):
     return d
 
 
-def store_data(data):
+def store_data(data, city_data):
     for row in data:
         if not row:
             continue
 
         # creates a dictionary mapping a key to every value in the row
         try:
-            d = create_instance(row)
+            d = create_instance(row, city_data)
         except Exception as e:
             print(e)
             print("This Place Could Not Be Found: " + str(row[0]))
@@ -373,12 +399,27 @@ def store_data(data):
                 print(d["place_name"])
 
 
+def get_city_collection():
+    if not firebase_admin._apps:
+        cred = credentials.Certificate(firebase_key)
+        firebase_admin.initialize_app(cred)
+
+    db = firestore.client()
+
+    collection = db.collection(u'cities3').stream()
+    city_data = dict()
+    for doc in collection:
+        city_data[doc.id] = doc.to_dict()
+
+    return city_data
+
+
 def load_heatmap_data(request=None):
     data, status = heatMapDataScraper()
-
+    city_data = get_city_collection()
     if status == 0:
         # load into django
-        store_data(data)
+        store_data(data, city_data)
         try:
             pass
         except KeyError:
@@ -425,6 +466,21 @@ def get_heatmap_data(request):
             d["lng"] = djData["longitude"]
             d["intensity"] = djData["crude_case_rate"]
             responseData.append(d)
+        return JsonResponse(responseData, safe=False)
+    else:
+        return JsonResponse("ERROR: NOT A GET REQUEST")
+
+
+def show_db(request):
+    '''
+    Just a method for viewing the contents of the database
+    '''
+    if request.method == "GET":
+        data = Covid_HeatMap_Stats.objects.all()
+        responseData = []
+        for i in data:
+            djData = model_to_dict(i)
+            responseData.append(djData)
         return JsonResponse(responseData, safe=False)
     else:
         return JsonResponse("ERROR: NOT A GET REQUEST")
