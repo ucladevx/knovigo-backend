@@ -1,11 +1,9 @@
 from django.db import models
-from ..settings import API_KEY
 try:
-    import requests, json
+    import requests
+    import json
 except:
     raise ImportError
-
-api_key = API_KEY
 
 
 class Covid_HeatMap_Stats(models.Model):
@@ -23,3 +21,14 @@ class Covid_HeatMap_Stats(models.Model):
     # in the table, unstable case rate either blank or a ^ indicating unstable
     unstable_adjusted_rate = models.CharField(max_length=50)
     peps_population = models.IntegerField()
+
+
+class city_vaccination_info(models.Model):
+    place_id = models.CharField(primary_key=True, max_length=100)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+
+    place_name = models.CharField(max_length=50)
+    number_vaccinated = models.IntegerField()
+    percentage_vaccinated = models.FloatField()
+    population = models.IntegerField()
