@@ -254,25 +254,6 @@ def load_heatmap_data(request=None):
     return JsonResponse({"SUCCESS": False})
 
 
-def old_get_heatmap_data(request):
-
-    # order is Los Angeles - Westwood, Los Angeles - East Hollywood,
-    # intensity is Crude Case Rate
-    if request.method == "GET":
-        data = Covid_HeatMap_Stats.objects.all()
-        responseData = []
-        for i in data:
-            djData = model_to_dict(i)
-            d = dict()
-            d["lat"] = djData["latitude"]
-            d["lng"] = djData["longitude"]
-            d["intensity"] = djData["crude_case_rate"]
-            responseData.append(d)
-        return JsonResponse(responseData, safe=False)
-    else:
-        return JsonResponse("ERROR: NOT A GET REQUEST")
-
-
 def get_heatmap_data(request):
     if request.method == "GET":
         data = city_vaccination_info.objects.all()
@@ -284,21 +265,6 @@ def get_heatmap_data(request):
             d["lng"] = djData["longitude"]
             d["intensity"] = 100 - djData["percentage_vaccinated"]
             responseData.append(d)
-        return JsonResponse(responseData, safe=False)
-    else:
-        return JsonResponse("ERROR: NOT A GET REQUEST")
-
-
-def old_show_db(request):
-    '''
-    Just a method for viewing the contents of the database
-    '''
-    if request.method == "GET":
-        data = Covid_HeatMap_Stats.objects.all()
-        responseData = []
-        for i in data:
-            djData = model_to_dict(i)
-            responseData.append(djData)
         return JsonResponse(responseData, safe=False)
     else:
         return JsonResponse("ERROR: NOT A GET REQUEST")
