@@ -19,7 +19,7 @@ urlpatterns = [
     path('filtered', views.place_filter_list),
     path('location/<float:latitude>/<float:longitude>', views.place_location_list),
     path('place/<id>', views.place_detail),
-    path('recs', views.place_busiest),
+    path('busiest', views.place_busiest),
     path('get_user_report', views.get_user_report_data),
     path('get_place_data', views.get_place_data_updates),
     path('save_app_report', views.save_app_report),
